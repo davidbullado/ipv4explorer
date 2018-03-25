@@ -1,18 +1,11 @@
-var mymap = L.map('mapid').setView([0, 0], 1); /*.setMaxBounds([
+var mymap = L.map("mapid").setView([0, 0], 1); /*.setMaxBounds([
     [-90, -180],
     [90, 180]
 ])*/
-/*
-, {
-    crs: L.CRS.Simple
-}
-let bounds: LatLngBoundsExpression = [[0, 0], [1000, 1000]];
-var image = L.imageOverlay('uqm_map_full.png', bounds).addTo(mymap);
-*/
-L.tileLayer('http://localhost:1337/tiles/{z}/{x}/{y}', {
+L.tileLayer("http://localhost:1337/tiles/{z}/{x}/{y}", {
     maxZoom: 16,
-    attribution: '',
-    id: 'mapbox.streets',
+    attribution: "",
+    id: "mapbox.streets",
     noWrap: true,
     bounds: [
         [-90, -180],
@@ -38,8 +31,19 @@ var IPv4 = /** @class */ (function () {
         this.toString = function () {
             return _this.pString;
         };
-        this.ipval = value;
+        this.pVal = value;
     }
+    Object.defineProperty(IPv4.prototype, "pVal", {
+        get: function () {
+            return this.ipval;
+        },
+        set: function (val) {
+            this.ipval = val;
+            this.point = IPv4.getPointFromVal(val);
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(IPv4.prototype, "pPoint", {
         get: function () {
             return this.point;
@@ -56,21 +60,31 @@ var IPv4 = /** @class */ (function () {
             return [this.ipval >> 24 & 0xff, this.ipval >> 16 & 0xff, this.ipval >> 8 & 0xff, this.ipval & 0xff].join(".");
         },
         set: function (s) {
-            var arr = s.split('.');
-            this.ipval = IPv4.getIntValue(Number(arr[0]), Number(arr[1]), Number(arr[2]), Number(arr[3]));
-            var twobit;
-            var x = 0;
-            var y = 0;
-            for (var i = 15; i >= 0; i--) {
-                twobit = (this.ipval >> i * 2) & 3;
-                x += (twobit & 1) * Math.pow(2, i);
-                y += ((twobit >> 1) & 1) * Math.pow(2, i);
-            }
-            this.point = { y: y, x: x };
+            var arr = s.split(".");
+            this.pVal = IPv4.getIntValue(Number(arr[0]), Number(arr[1]), Number(arr[2]), Number(arr[3]));
         },
         enumerable: true,
         configurable: true
     });
+    IPv4.prototype.getLastIPMask = function (mask) {
+        // number of lines
+        var height = 1 << ((32 - mask) >> 1);
+        var width = height;
+        var ipEnd = new IPv4();
+        ipEnd.pPoint = { x: this.pPoint.x + width - 1, y: this.pPoint.y + height - 1 };
+        return ipEnd;
+    };
+    IPv4.getPointFromVal = function (ipval) {
+        var twobit;
+        var x = 0;
+        var y = 0;
+        for (var i = 15; i >= 0; i--) {
+            twobit = (ipval >> i * 2) & 3;
+            x += (twobit & 1) * Math.pow(2, i);
+            y += ((twobit >> 1) & 1) * Math.pow(2, i);
+        }
+        return { y: y, x: x };
+    };
     IPv4.newIPv4FromString = function (s) {
         var myip = new IPv4();
         myip.pString = s;
@@ -93,10 +107,11 @@ function getAbsolutePoint(map, latlng) {
     var p = map.project(latlng, map.getZoom());
     return p.multiplyBy(Math.pow(2, map.getMaxZoom() - map.getZoom() - 8)).floor();
 }
-function getLatLng(map, point) {
+function getLatLng(map, point, offset) {
+    if (offset === void 0) { offset = 0; }
     var ret;
     try {
-        var p = new L.Point(point.x, point.y);
+        var p = new L.Point(point.x + offset, point.y + offset);
         var mypoint = p.divideBy(Math.pow(2, map.getMaxZoom() - map.getZoom() - 8));
         ret = mymap.unproject(mypoint, map.getZoom());
     }
@@ -109,20 +124,22 @@ function castLPoint(p) {
     var point = new L.Point(p.x, p.y);
     return point;
 }
-function poligonizify(iprange, label, color) {
-    var twopart = iprange.split('/');
+function poligonizify(ipCIDR, label, color) {
+    var twopart = ipCIDR.split("/");
     var ipTopLeft = IPv4.newIPv4FromString(twopart[0]);
     var ipBotLeft = new IPv4();
     var ipTopRight = new IPv4();
     var ipBotRight = new IPv4();
-    var ipEnd = new IPv4();
     var mask = Number(twopart[1]);
+    var ipEnd = ipTopLeft.getLastIPMask(mask);
     // thanks https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses
-    if (!/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(twopart[0])) {
-        throw new Error("IP must be defined as: 0.0.0.0/0, instead we got:'" + iprange + "'");
+    var ipReg = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
+    var fullReg = "^" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + "$";
+    if (!(new RegExp(fullReg)).test(twopart[0])) {
+        throw new Error("IP CIDR must be defined as: 0.0.0.0/0, instead we got:'" + ipCIDR + "'");
     }
     if (isNaN(mask)) {
-        throw new Error("Mask must be defined as: 0.0.0.0/0, instead we got:'" + iprange + "'");
+        throw new Error("Mask must be defined as: 0.0.0.0/0, instead we got:'" + ipCIDR + "'");
     }
     // number of lines
     var height = 1 << ((32 - mask) >> 1);
@@ -130,7 +147,6 @@ function poligonizify(iprange, label, color) {
     ipBotLeft.pPoint = { x: ipTopLeft.pPoint.x, y: ipTopLeft.pPoint.y + height };
     ipTopRight.pPoint = { x: ipTopLeft.pPoint.x + width, y: ipTopLeft.pPoint.y };
     ipBotRight.pPoint = { x: ipTopLeft.pPoint.x + width, y: ipTopLeft.pPoint.y + height };
-    ipEnd.pPoint = { x: ipTopLeft.pPoint.x + width - 1, y: ipTopLeft.pPoint.y + height - 1 };
     L.polygon([
         getLatLng(mymap, ipTopLeft.pPoint),
         getLatLng(mymap, ipBotLeft.pPoint),
@@ -147,11 +163,11 @@ function onMapClick(e) {
         .setContent(myip.toString())
         .openOn(mymap);
 }
-mymap.on('click', onMapClick);
+mymap.on("click", onMapClick);
 var myip = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
-L.marker(getLatLng(mymap, castLPoint(myip.pPoint))).addTo(mymap)
+L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
     .bindPopup("You are here.<br/>" + myip).openPopup();
-var aIpRange = [
+var arrCIDR = [
     { ipr: "0.0.0.0/8", lab: "Current network (only valid as source address)", c: "#001f3f" },
     { ipr: "10.0.0.0/8", lab: "Private network", c: "#0074D9" },
     { ipr: "100.64.0.0/10", lab: "Shared address space for carrier-grade NAT", c: "#7FDBFF" },
@@ -169,8 +185,8 @@ var aIpRange = [
     { ipr: "240.0.0.0/4", lab: "Reserved (former Class E network)", c: "#85144b" },
     { ipr: "255.255.255.255/32", lab: "Broadcast", c: "#F012BE" }
 ];
-for (var _i = 0, aIpRange_1 = aIpRange; _i < aIpRange_1.length; _i++) {
-    var myRange = aIpRange_1[_i];
+for (var _i = 0, arrCIDR_1 = arrCIDR; _i < arrCIDR_1.length; _i++) {
+    var myRange = arrCIDR_1[_i];
     try {
         poligonizify(myRange.ipr, myRange.lab, myRange.c);
     }

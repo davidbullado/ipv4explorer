@@ -34,6 +34,7 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="views\wait.pug" />
     <TypeScriptCompile Include="app.ts" />
     <TypeScriptCompile Include="ipv4\index.ts" />
     <TypeScriptCompile Include="public\javascripts\main.ts">
@@ -53,6 +54,7 @@
     <Content Include="views\error.pug" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="ip2lite\" />
     <Folder Include="ipv4\" />
     <Folder Include="text2png\" />
     <Folder Include="public\" />
@@ -63,6 +65,7 @@
     <Folder Include="views\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ip2lite\index.ts" />
     <Compile Include="text2png\index.js">
       <SubType>Code</SubType>
     </Compile>

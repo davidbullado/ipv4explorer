@@ -6,7 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { registerFont, createCanvas } = require('canvas');
+const Canvas =require("canvas");
 const commander = require('commander');
 const version = require('./package.json').version;
 
@@ -59,7 +59,7 @@ const text2png = (text, option) => {
         registerFont(option.localFontPath, { family: option.localFontName });
     }
 
-    const canvas = createCanvas(0, 0);
+    const canvas = new Canvas(0, 0);
     const ctx = canvas.getContext('2d');
 
     const max = {

@@ -1,10 +1,10 @@
-﻿import debug = require('debug');
-import express = require('express');
-import path = require('path');
+﻿import debug = require("debug");
+import express = require("express");
+import path = require("path");
 
-import routes from './routes/index';
-import users from './routes/user';
-import tiles from './routes/tiles';
+import routes from "./routes/index";
+import users from "./routes/user";
+import tiles from "./routes/tiles";
 
 var app = express();
 
