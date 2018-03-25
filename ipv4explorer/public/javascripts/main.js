@@ -2,7 +2,7 @@ var mymap = L.map("mapid").setView([0, 0], 1); /*.setMaxBounds([
     [-90, -180],
     [90, 180]
 ])*/
-L.tileLayer("http://localhost:1337/tiles/{z}/{x}/{y}", {
+L.tileLayer("/tiles/{z}/{x}/{y}", {
     maxZoom: 16,
     attribution: "",
     id: "mapbox.streets",
