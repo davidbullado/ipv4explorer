@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 
 // Git repository : https://github.com/tkrkt/text2png
 

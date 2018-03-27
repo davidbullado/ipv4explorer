@@ -1,4 +1,4 @@
-﻿/*
+/*
  * GET tiles listing.
  */
 import express = require("express");

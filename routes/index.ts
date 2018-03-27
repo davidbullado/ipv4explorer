@@ -1,4 +1,4 @@
-﻿/*
+/*
  * GET home page.
  */
 import express = require('express');
@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get('/', (req: express.Request, res: express.Response) => {
 
-    let renderIndex = () => res.render('index', { title: 'Express', myip: req.header('x-forwarded-for') || req.connection.remoteAddress });
+    let renderIndex = () => res.render('index', { title: 'IPv4 Explorer', myip: req.header('x-forwarded-for') || req.connection.remoteAddress });
 
     if (!ip2lite.default.ipArray) {
         ip2lite.start(renderIndex);

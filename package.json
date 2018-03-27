@@ -6,7 +6,7 @@
 		"start": "node app",
 		"test": "mocha test/unit.ts"
 	},
-	"description": "ExpressApp1",
+	"description": "IPv4 Explorer",
 	"author": {
 		"name": "david"
 	},
