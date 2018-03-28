@@ -7,7 +7,7 @@ var express = require("express");
 var ip2lite = require("../ip2lite");
 var router = express.Router();
 router.get('/', function (req, res) {
-    var renderIndex = function () { return res.render('index', { title: 'Express', myip: req.header('x-forwarded-for') || req.connection.remoteAddress }); };
+    var renderIndex = function () { return res.render('index', { title: 'IPv4 Explorer', myip: req.header('x-forwarded-for') || req.connection.remoteAddress }); };
     if (!ip2lite.default.ipArray) {
         ip2lite.start(renderIndex);
     }
