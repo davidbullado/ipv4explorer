@@ -33,7 +33,6 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
         res.sendFile(file);
     }
     else {
-        console.log("creating " + file)
         let ipval: number = 0;
         let point: { x: number, y: number } = { x: 0, y: 0 };
 

@@ -30,7 +30,6 @@ router.get("/:z/:x/:y", function (req, res) {
         res.sendFile(file);
     }
     else {
-        console.log("creating " + file);
         var ipval = 0;
         var point = { x: 0, y: 0 };
         for (var i = z; i > 0; i--) {
