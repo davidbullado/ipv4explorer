@@ -26,8 +26,14 @@ router.get("/:z/:x/:y", function (req, res) {
             filterBetween.call({ value: this.ipEnd }, d);
     }
     if (fs.existsSync(file)) {
-        res.type("png");
-        res.sendFile(file);
+        if (z === 4) {
+            res.type("svg");
+            res.sendFile(file);
+        }
+        else {
+            res.type("png");
+            res.sendFile(file);
+        }
     }
     else {
         var ipval = 0;

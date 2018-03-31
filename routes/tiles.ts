@@ -29,8 +29,14 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
     }
 
     if (fs.existsSync(file)) {
-        res.type("png");
-        res.sendFile(file);
+        if (z===4){
+            res.type("svg");
+            res.sendFile(file);
+        } else {
+            res.type("png");
+            res.sendFile(file);
+        }
+
     }
     else {
         let ipval: number = 0;
