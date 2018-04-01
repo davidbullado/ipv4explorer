@@ -1,6 +1,7 @@
-module.exports = function (ip, whois, designation, date) {
+module.exports = function (ip, whois, designation, date, neighbors) {
 
   var fillRect = "";
+
   switch (whois) {
     case 'IANA':
       fillRect="#f0f0f0";
@@ -23,6 +24,33 @@ module.exports = function (ip, whois, designation, date) {
     default:
      fillRect="#f0f0f0";
   }
+
+  var rect = {
+    x:3,
+    y:3,
+    width:250,
+    height:250
+  }
+
+  // right
+  if (neighbors[1][2]) {
+    rect.width+=15;
+  }
+  // left
+  if (neighbors[1][0]) {
+    rect.x-=15;
+    rect.width+=15;
+  }
+  // top
+  if (neighbors[0][1]) {
+    rect.y-=15;
+    rect.height+=15;
+  }
+  // bottom
+  if (neighbors[2][1]) {
+    rect.height+=15;
+  }
+
   return `<?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
@@ -40,7 +68,7 @@ module.exports = function (ip, whois, designation, date) {
     ]]>
   </style>
   </defs>
-  <rect x="3" y="3" width="250" height="250" 
+  <rect x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" 
           rx="15" ry="15" fill="${fillRect}" />
   <text text-anchor="middle" x="128" y="64" font-size="22"  >
     ${ip}/8
