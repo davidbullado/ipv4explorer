@@ -4,7 +4,7 @@ var d3 = require("d3-dsv");
 var fs = require("fs");
 var tileConstruct = require("./tilesvg.js");
 var IPv4 = require("../ipv4").default;
-var svg_to_png = require('svg-to-png');
+//var svg_to_png = require('svg-to-png');
 
 var buf = fs.readFileSync("./ipv4-address-space.csv");
 var processRow = (row) => {
