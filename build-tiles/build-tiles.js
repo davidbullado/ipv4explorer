@@ -7,6 +7,7 @@ var IPv4 = require("../ipv4").default;
 var svg_to_png = require('svg-to-png');
 
 var buf = fs.readFileSync("./ipv4-address-space.csv");
+
 var processRow = (row) => {
     var extractDigit = new RegExp(/0*(\d+)/) ;
     var r = extractDigit.exec(row.Prefix);
@@ -24,37 +25,61 @@ var processRow = (row) => {
         }
         whois = resWhois[1].toUpperCase();
     }
-    
-    // we want to convert ip into coordinates
+
+    // we want to convert ip into coordinates:
     var myip = IPv4.newIPv4FromString(ip);
-    var dividby = Math.pow(2,12);
-    var x = myip.point.x / dividby;
-    var y = myip.point.y / dividby;
+    // we have to scale to zoom 4, i.e. divide by 2^12.
+    // (because point.x E [0, 2^16], and we want x E [0, 2^4])
+    var x = myip.point.x / 0x1000; // 0x1000 = 2^12
+    var y = myip.point.y / 0x1000;
+
+    return {
+        ip: ip,
+        whois: whois,
+        designation: row.Designation,
+        date: row.Date,
+        x: x,
+        y: y
+    };
+};
+var result = d3.csvParse(buf.toString(), processRow );
+
+function findXY (row) {
+    return row.x === this.x && row.y === this.y;
+}
+
+
+
+result.forEach(function(row) {
+
+    var myNeighbors = [
+        [false,false,false],
+        [false,false,false],
+        [false,false,false]
+    ];
+
+    for (var y=-1; y <= 1 ; y++){
+        for (var x=-1; x <= 1; x++){
+            var neighborTile = result.find(findXY,{x: row.x+x, y: row.y+y});
+            // If neighbor shares the same whois
+            if (neighborTile && neighborTile.whois === row.whois && neighborTile.designation === row.designation){
+                myNeighbors[y+1][x+1] = true; 
+            }
+        }
+    }
 
     if (!fs.existsSync('../tiles/4')) {
         fs.mkdirSync('../tiles/4');
     }
-    if (!fs.existsSync(`../tiles/4/${x}`)) {
-        fs.mkdirSync(`../tiles/4/${x}`);
+    if (!fs.existsSync(`../tiles/4/${row.x}`)) {
+        fs.mkdirSync(`../tiles/4/${row.x}`);
     }
     
-    var filename = `../tiles/4/${x}/${y}`;
+    var filename = `../tiles/4/${row.x}/${row.y}`;
 
-    fs.writeFileSync(filename,tileConstruct(ip,whois,row.Designation,row.Date));
+    fs.writeFileSync(filename,tileConstruct(row.ip,row.whois,row.designation,row.date,myNeighbors));
 
-
-    return filename ;
-
-
-    /*return {
-        ip: ip,
-        designation: row.Designation,
-        date: row.Date,
-        whois: whois
-    };*/
-};
-var result = d3.csvParse(buf.toString(), processRow );
-console.log(result[0])
+  });
 
 /*
 var sync = 0 ;
