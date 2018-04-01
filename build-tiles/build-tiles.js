@@ -47,6 +47,7 @@ var result = d3.csvParse(buf.toString(), processRow );
 function findXY (row) {
     return row.x === this.x && row.y === this.y;
 }
+function compareTo (row1, row2) {
 
 
 

@@ -1,5 +1,6 @@
 module.exports = function (ip, whois, designation, date, neighbors) {
 
+function getColorFromWhois (whois) {
   var fillRect = "";
 
   switch (whois) {
