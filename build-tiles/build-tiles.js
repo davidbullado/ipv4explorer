@@ -44,73 +44,30 @@ var processRow = (row) => {
 };
 var result = d3.csvParse(buf.toString(), processRow );
 
-function findXY (row) {
-    return row.x === this.x && row.y === this.y;
-}
+
 function compareTo (row1, row2) {
     return row1.whois === row2.whois && row1.designation === row2.designation
 }
-
+function findXY (row) {
+    return row.x === this.x && row.y === this.y;
+}
+function getXYTile (point) {
+    return result.find(findXY,point);
+}
 
 result.forEach(function(row) {
 
-    var myNeighbors = [
-        [null,null,null],
-        [null,null,null],
-        [null,null,null]
-    ]
-    var myNeighborsEquals = [
-        [false,false,false],
-        [false,false,false],
-        [false,false,false]
-    ];
-
-    for (var y=-1; y <= 1 ; y++){
-        for (var x=-1; x <= 1; x++){
-            var neighborTile = result.find(findXY,{x: row.x+x, y: row.y+y});
-            // store neighbors reference
-            myNeighbors[y+1][x+1] = neighborTile;
-            // If neighbor shares the same whois
-            if (neighborTile && compareTo (neighborTile, row)){
-                myNeighborsEquals[y+1][x+1] = true; 
-            }
-        }
+    if (!fs.existsSync('../tiles_svg/4')) {
+        fs.mkdirSync('../tiles_svg/4');
     }
-    var nbTop = myNeighbors[0][1];
-    var nbRight = myNeighbors[1][2];
-    var nbBot = myNeighbors[2][1];
-    var nbLeft = myNeighbors[1][0];
-
-    var nbEqualsBtwThem = {
-        topRigth: "",
-        rigthBot: "",
-        botLeft: "",
-        leftTop: ""
-    }
-
-    if (nbTop && nbRight && compareTo (nbTop,nbRight)){
-        nbEqualsBtwThem.topRigth = nbTop.whois;
-    }
-    if (nbRight && nbBot && compareTo (nbRight,nbBot)){
-        nbEqualsBtwThem.rigthBot = nbRight.whois;
-    }
-    if (nbBot && nbLeft && compareTo (nbBot,nbLeft)){
-        nbEqualsBtwThem.botLeft = nbBot.whois;
-    }
-    if (nbLeft && nbTop && compareTo (nbLeft,nbTop)){
-        nbEqualsBtwThem.leftTop = nbLeft.whois;
-    }
-
-    if (!fs.existsSync('../tiles/4')) {
-        fs.mkdirSync('../tiles/4');
-    }
-    if (!fs.existsSync(`../tiles/4/${row.x}`)) {
-        fs.mkdirSync(`../tiles/4/${row.x}`);
+    if (!fs.existsSync(`../tiles_svg/4/${row.x}`)) {
+        fs.mkdirSync(`../tiles_svg/4/${row.x}`);
     }
     
-    var filename = `../tiles/4/${row.x}/${row.y}`;
-
-    fs.writeFileSync(filename,tileConstruct(row.ip,row.whois,row.designation,row.date,myNeighborsEquals,nbEqualsBtwThem));
+    var filename = `../tiles_svg/4/${row.x}/${row.y}`;
+  
+      
+    fs.writeFileSync(filename,tileConstruct(row.ip,row.whois,row.designation,row.date,getXYTile,compareTo, row));
 
   });
 
