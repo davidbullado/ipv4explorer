@@ -150,7 +150,7 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
             if (!myRIRs || myRIRs.length === 0){
                 console.log("error: whois cannot be found :"+myIP );
             }
-            if (myRIRs.length > 0){
+            if (myRIRs.length > 1){
                 console.log("error: too much values for RIR: "+myRIRs.length);
             }
             let myRIR = myRIRs[0] ;
