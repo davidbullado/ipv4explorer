@@ -26,15 +26,25 @@ function getCountries(ipValue: number, zoom: number) {
     let result: string = "";
     ipEnd = ipEnd.getLastIPMask(zoom * 2);
 
-    let myRange = defaultExport.ipArray.filter(filter, { ipStart: ipValue, ipEnd: ipEnd.pVal }); // d => d.ipRangeStart.pVal <= ipval && ipEnd.pVal <= d.ipRangeEnd.pVal
-    let countries = new Set();
-    if (zoom === 16){
-        myRange.forEach(r => countries.add(r.countryLabel));
-    }   else {
-        myRange.forEach(r => countries.add(r.countryCode));
+    let myRange = defaultExport.ipArray.filter(filter, { ipStart: ipValue, ipEnd: ipEnd.pVal });
+    let countryCode= new Set();
+    let countryLabels = new Set();
+
+    myRange.forEach(r => { 
+        countryCode.add(r.countryCode);
+        countryLabels.add(r.countryLabel);
+    });
+
+    let res: string = "" ;
+     
+    if (countryLabels.size === 1){
+        res = countryLabels.values().next().value; 
+    } else {
+        let arrCountryCode = Array.from(countryCode);
+        res = arrCountryCode.slice(0,4).join(", ")+(countryCode.size > 4 ? ", "+arrCountryCode[4]+", ...": ""   );
     }
-    
-    return Array.from(countries).join(", ");
+
+    return res;
 }
 
 function getIPFromXYZ(x,y,z){
@@ -68,41 +78,26 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
     const file: string = path.join(__dirname, "../tiles_svg/", z + "/" + x + "/" + y);
     console.log("Request: "+file);
 
-    function getXYTile(point){
-        let myip: IPv4 = getIPFromXYZ(point.x,point.y,z);
-        if (myip) {
-
-            const res = defaultExport.ipWhois.filter(filter, { ipStart: myip.pVal, ipEnd: myip.getLastIPMask(z * 2).pVal } );
-            let whoistxt: string = "";
-            if (res && res.length > 0){
-                let whois = new Set();
-                res.forEach(r => whois.add(r.whois));
-                whoistxt = Array.from(whois).join(',');
-            }
-            return {x:point.x, y:point.y, desc:getCountries(myip.pVal,z), whois: whoistxt};
-        } else {
-            return null;
-        }
-        
-    }
-    function compareTo (row1, row2) {
-        return row1.desc === row2.desc
-    }
     res.type("svg");
-    if (z===4){
-        console.log("found: "+file)
+    /*if (z===4) {
+        console.log("found: "+file);
+        res.sendFile(file);
+    } else */if (fs.existsSync(file)) {
+        console.log("found: "+file);
         res.sendFile(file);
     } else {
-        
-        let myIP: IPv4 = getIPFromXYZ(x,y,z);
-        let myCountryList: string = getCountries(myIP.pVal,z);
 
-        let strip: string = myIP.toString();
+        let myIP: IPv4 = getIPFromXYZ(x,y,z);
+        let myCountryList: string = ""; 
+        
+        if (z > 4) {
+            myCountryList = getCountries(myIP.pVal,z);
+        }
+
+        let strIP: string = myIP.toString();
         // single ip scale
-        if (z === 16) {
-    
-        } else {
-            strip += "/" + (z * 2) + "\n";
+        if (z < 16) {
+            strIP += "/" + (z * 2) + "\n";
         }
 
         let folder = path.join(__dirname, "../tiles_svg");
@@ -128,27 +123,89 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
         // filter
         
         // (ip, whois, designation, date, getXYTile, compareTo, row)
-        console.log("Build tile "+strip);
+        console.log("Build tile "+strIP);
+        let svgTileContent;
 
-        const reswhois = defaultExport.ipWhois.filter(filter, { ipStart: myIP.pVal, ipEnd: myIP.getLastIPMask(z * 2).pVal } );
-       if (!reswhois || reswhois.length === 0){
-        console.log("error: whois cannot be found :"+myIP )
-       }
-        let data;
-        if (reswhois.length > 1) {
-                let whoistxt:string = "";
-                let whois = new Set();
-                reswhois.forEach(r => whois.add(r.whois));
-                whoistxt = Array.from(whois).join(',');
-            data = tilesvg(strip,whoistxt,myCountryList,"",getXYTile,compareTo, {x:x, y:y, desc: myCountryList});
-        } else{
-            data = tilesvg(strip,reswhois[0].whois,myCountryList,"",getXYTile,compareTo, {x:x, y:y, desc: myCountryList});
+
+        var getTileInfo = (ipTile: IPv4, point) => {
+            if (ipTile) {
+                const res = defaultExport.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal } );
+                return {x:point.x, y:point.y, desc:getCountries(ipTile.pVal,z), whois: res[0].whois};
+            } else {
+                return null;
+            }
+        };
+        var getXYTile = (point) => {
+            const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,z);
+            return getTileInfo(ipTile, point);
+        };
+        var compareTiles = (tile1, tile2) => {
+            return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;
+        };
+
+        // 
+        if (z >= 4) {
+            // list all Regional Internet Registries where my ip belong
+            const myRIRs = defaultExport.ipWhois.filter(filter, { ipStart: myIP.pVal, ipEnd: myIP.getLastIPMask(z * 2).pVal } );
+            if (!myRIRs || myRIRs.length === 0){
+                console.log("error: whois cannot be found :"+myIP );
+            }
+            if (myRIRs.length > 0){
+                console.log("error: too much values for RIR: "+myRIRs.length);
+            }
+            let myRIR = myRIRs[0] ;
+            
+            let date: string = "";
+            let designation: string = "";
+            let title: string = "";
+            if (z===4){
+                date = myRIR.date;
+                designation = myRIR.designation;
+                title = myRIR.whois;
+                getTileInfo = (ipTile: IPv4, point) => {
+                    if (ipTile) {
+                        const res = defaultExport.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal } );
+                        return {x:point.x, y:point.y, desc:res[0].designation, whois: res[0].whois};
+                    } else {
+                        return null;
+                    }
+                };
+            } else {
+                designation = myCountryList;
+                title = myRIR.whois;
+            }
+            let row = getTileInfo(myIP, {x:x, y:y});
+            // 
+            svgTileContent = tilesvg(strIP, title, designation, date, getXYTile, compareTiles, row);
+        } else {
+
+            svgTileContent = tilesvg(strIP, "", "", "", null, null, {x:x, y:y, desc: myCountryList}, "#f0f0f0");
         }
+
+        /*
+                // more than one 
+                if (myRIRs.length > 1) {
+                    
+                    let setRIR = new Set();
+                    // remove duplicates
+                    myRIRs.forEach(r => setRIR.add(r.whois));
+                    // concat whois
+                    const strRIRlist: string = Array.from(setRIR).join(', ');
+                    
+                    svgTileContent = tilesvg(strIP, strRIRlist, myCountryList, "", getXYTile, (row1, row2) => row1.desc === row2.desc , {x:x, y:y, desc: myCountryList});
+                    
+                } else{
+
+                    svgTileContent = tilesvg(strIP, myRIRs[0].whois, myCountryList, "", getXYTile, (row1, row2) => row1.desc === row2.desc , {x:x, y:y, desc: myCountryList});
+
+                }
+        */
+
         let callback = (err) => {
             res.type("svg");
             res.sendFile(file);
         }
-        fs.writeFile(file, data,callback);
+        fs.writeFile(file, svgTileContent,callback);
             
     }
 });

@@ -26,160 +26,170 @@ function getColorFromWhois (whois) {
 }
 
 
-module.exports = function (ip, whois, designation, date, getXYTile, compareTo, row) {
+module.exports = function (ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
 
-  var myNeighbors = [
-      [null,null,null],
-      [null,null,null],
-      [null,null,null]
-  ]
-  var myNeighborsEquals = [
-      [false,false,false],
-      [false,false,false],
-      [false,false,false]
-  ];
+  var fillRect ;
 
-  for (var y=-1; y <= 1 ; y++){
-      for (var x=-1; x <= 1; x++){
-          var neighborTile = getXYTile({x: row.x+x, y: row.y+y});
-          // store neighbors reference
-          myNeighbors[y+1][x+1] = neighborTile;
-          // If neighbor shares the same whois
-          if (neighborTile && compareTo (neighborTile, row)){
-              myNeighborsEquals[y+1][x+1] = true; 
-          }
-      }
-  }
-  var nbTop   = myNeighbors[0][1];
-  var nbRight = myNeighbors[1][2];
-  var nbBot   = myNeighbors[2][1];
-  var nbLeft  = myNeighbors[1][0];
-
-  var nbEqualsBtwThem = {
-      topRigth: "",
-      rigthBot: "",
-      botLeft: "",
-      leftTop: ""
+  if (colorRect){
+    fillRect = colorRect;
+  } else {
+    fillRect = getColorFromWhois(whois);
   }
 
-  if (nbTop && nbRight && compareTo (nbTop,nbRight)){
-      nbEqualsBtwThem.topRigth = nbTop.whois;
-  }
-  if (nbRight && nbBot && compareTo (nbRight,nbBot)){
-      nbEqualsBtwThem.rigthBot = nbRight.whois;
-  }
-  if (nbBot && nbLeft && compareTo (nbBot,nbLeft)){
-      nbEqualsBtwThem.botLeft = nbBot.whois;
-  }
-  if (nbLeft && nbTop && compareTo (nbLeft,nbTop)){
-      nbEqualsBtwThem.leftTop = nbLeft.whois;
-  }
-
-
-  var fillRect = getColorFromWhois(whois);
-
+  var join = "";
   var rect = {
     x:3,
     y:3,
     width:250,
     height:250
-  }
+  } ;
 
-  // right
-  if (myNeighborsEquals[1][2]) {
-    rect.width+=15;
-  }
-  // left
-  if (myNeighborsEquals[1][0]) {
-    rect.x-=15;
-    rect.width+=15;
-  }
-  // top
-  if (myNeighborsEquals[0][1]) {
-    rect.y-=15;
-    rect.height+=15;
-  }
-  // bottom
-  if (myNeighborsEquals[2][1]) {
-    rect.height+=15;
-  }
+  if (getXYTile && compareTo) {
+    var myNeighbors = [
+        [null,null,null],
+        [null,null,null],
+        [null,null,null]
+    ]
+    var myNeighborsEquals = [
+        [false,false,false],
+        [false,false,false],
+        [false,false,false]
+    ];
 
-  var join = "";
-  // left top
-  if (myNeighborsEquals[0][0]){
-    join += `
-    <rect x="0" y="0" width="18" height="18" fill="${fillRect}" />
-    <circle cx="-18" cy="18" r="21" fill="white" />
-    <circle cx="18" cy="-18" r="21" fill="white" />
-    `
-  }
-  // right bottom
-  if (myNeighborsEquals[2][2]){
-    join += `
-    <rect x="238" y="238" width="18" height="18" fill="${fillRect}" />
-    <circle cx="238" cy="274" r="21" fill="white" />
-    <circle cx="274" cy="238" r="21" fill="white" />
-    `
-  }
+    for (var y=-1; y <= 1 ; y++){
+        for (var x=-1; x <= 1; x++){
+            var neighborTile = getXYTile({x: row.x+x, y: row.y+y});
+            // store neighbors reference
+            myNeighbors[y+1][x+1] = neighborTile;
+            // If neighbor shares the same whois
+            if (neighborTile && compareTo (neighborTile, row)){
+                myNeighborsEquals[y+1][x+1] = true; 
+            }
+        }
+    }
+    var nbTop   = myNeighbors[0][1];
+    var nbRight = myNeighbors[1][2];
+    var nbBot   = myNeighbors[2][1];
+    var nbLeft  = myNeighbors[1][0];
 
-  // if current tile equals its top right neighbor,
-  if (myNeighborsEquals[0][2]) {
-    join += `
-    <rect x="238" y="0" width="18" height="18" fill="${fillRect}" />
-    <circle cx="238" cy="-18" r="21" fill="white" />
-    <circle cx="274" cy="18" r="21" fill="white" />
-    `
-  }
+    var nbEqualsBtwThem = {
+        topRigth: "",
+        rigthBot: "",
+        botLeft: "",
+        leftTop: ""
+    }
 
-  // bottom left
-  if (myNeighborsEquals[2][0]) {
-    join += `
-    <rect x="0" y="238" width="18" height="18" fill="${fillRect}" />
-    <circle cx="-18" cy="238" r="21" fill="white" />
-    <circle cx="18" cy="274" r="21" fill="white" />
-    `
-  }
- 
-  // Left top
-  if (!myNeighborsEquals[0][0] && nbEqualsBtwThem.leftTop.length > 0) {
-    join += `
-    <polygon points="0,0 6,0 0,6" fill="${getColorFromWhois(nbEqualsBtwThem.leftTop)}" />
-    `
-  }
+    if (nbTop && nbRight && compareTo (nbTop,nbRight)){
+        nbEqualsBtwThem.topRigth = nbTop.whois;
+    }
+    if (nbRight && nbBot && compareTo (nbRight,nbBot)){
+        nbEqualsBtwThem.rigthBot = nbRight.whois;
+    }
+    if (nbBot && nbLeft && compareTo (nbBot,nbLeft)){
+        nbEqualsBtwThem.botLeft = nbBot.whois;
+    }
+    if (nbLeft && nbTop && compareTo (nbLeft,nbTop)){
+        nbEqualsBtwThem.leftTop = nbLeft.whois;
+    }
 
-  // Right bottom
-  if (!myNeighborsEquals[2][2] && nbEqualsBtwThem.rigthBot.length > 0) {
-    join += `
-    <polygon points="256,256 250,256 256,250" fill="${getColorFromWhois(nbEqualsBtwThem.rigthBot)}" />
-    `
-  }
+  
 
-  // cross : patch with triangle
-  if (myNeighborsEquals[2][0] && nbEqualsBtwThem.botLeft.length > 0) {
-    join += `
-    <polygon points="0,256 0,250 6,256" fill="${getColorFromWhois(nbEqualsBtwThem.botLeft)}" />
-    `
-  } else {
-    if (nbEqualsBtwThem.botLeft.length > 0) {
+    // right
+    if (myNeighborsEquals[1][2]) {
+      rect.width+=15;
+    }
+    // left
+    if (myNeighborsEquals[1][0]) {
+      rect.x-=15;
+      rect.width+=15;
+    }
+    // top
+    if (myNeighborsEquals[0][1]) {
+      rect.y-=15;
+      rect.height+=15;
+    }
+    // bottom
+    if (myNeighborsEquals[2][1]) {
+      rect.height+=15;
+    }
+
+    
+    // left top
+    if (myNeighborsEquals[0][0]){
       join += `
-      <rect x="0" y="250" width="6" height="6" fill="${getColorFromWhois(nbEqualsBtwThem.botLeft)}" />
-      <circle cx="18" cy="238" r="21" fill="white" />
+      <rect x="0" y="0" width="18" height="18" fill="${fillRect}" />
+      <circle cx="-18" cy="18" r="21" fill="white" />
+      <circle cx="18" cy="-18" r="21" fill="white" />
       `
     }
-  }
-
-  // cross : patch with triangle
-  if (myNeighborsEquals[0][2] &&  nbEqualsBtwThem.topRigth.length > 0) {
-    join += `
-    <polygon points="256,0 250,0 256,6" fill="${getColorFromWhois(nbEqualsBtwThem.topRigth)}" />
-    `
-  } else {
-    // otherwise, top and rigth are equal
-    if ( nbEqualsBtwThem.topRigth.length > 0 ) {
+    // right bottom
+    if (myNeighborsEquals[2][2]){
       join += `
-      <rect x="250" y="0" width="6" height="6" fill="${getColorFromWhois(nbEqualsBtwThem.topRigth)}" />
-      <circle cx="238" cy="18" r="21" fill="white" />
+      <rect x="238" y="238" width="18" height="18" fill="${fillRect}" />
+      <circle cx="238" cy="274" r="21" fill="white" />
+      <circle cx="274" cy="238" r="21" fill="white" />
       `
+    }
+
+    // if current tile equals its top right neighbor,
+    if (myNeighborsEquals[0][2]) {
+      join += `
+      <rect x="238" y="0" width="18" height="18" fill="${fillRect}" />
+      <circle cx="238" cy="-18" r="21" fill="white" />
+      <circle cx="274" cy="18" r="21" fill="white" />
+      `
+    }
+
+    // bottom left
+    if (myNeighborsEquals[2][0]) {
+      join += `
+      <rect x="0" y="238" width="18" height="18" fill="${fillRect}" />
+      <circle cx="-18" cy="238" r="21" fill="white" />
+      <circle cx="18" cy="274" r="21" fill="white" />
+      `
+    }
+  
+    // Left top
+    if (!myNeighborsEquals[0][0] && nbEqualsBtwThem.leftTop.length > 0) {
+      join += `
+      <polygon points="0,0 6,0 0,6" fill="${getColorFromWhois(nbEqualsBtwThem.leftTop)}" />
+      `
+    }
+
+    // Right bottom
+    if (!myNeighborsEquals[2][2] && nbEqualsBtwThem.rigthBot.length > 0) {
+      join += `
+      <polygon points="256,256 250,256 256,250" fill="${getColorFromWhois(nbEqualsBtwThem.rigthBot)}" />
+      `
+    }
+
+    // cross : patch with triangle
+    if (myNeighborsEquals[2][0] && nbEqualsBtwThem.botLeft.length > 0) {
+      join += `
+      <polygon points="0,256 0,250 6,256" fill="${getColorFromWhois(nbEqualsBtwThem.botLeft)}" />
+      `
+    } else {
+      if (nbEqualsBtwThem.botLeft.length > 0) {
+        join += `
+        <rect x="0" y="250" width="6" height="6" fill="${getColorFromWhois(nbEqualsBtwThem.botLeft)}" />
+        <circle cx="18" cy="238" r="21" fill="white" />
+        `
+      }
+    }
+
+    // cross : patch with triangle
+    if (myNeighborsEquals[0][2] &&  nbEqualsBtwThem.topRigth.length > 0) {
+      join += `
+      <polygon points="256,0 250,0 256,6" fill="${getColorFromWhois(nbEqualsBtwThem.topRigth)}" />
+      `
+    } else {
+      // otherwise, top and rigth are equal
+      if ( nbEqualsBtwThem.topRigth.length > 0 ) {
+        join += `
+        <rect x="250" y="0" width="6" height="6" fill="${getColorFromWhois(nbEqualsBtwThem.topRigth)}" />
+        <circle cx="238" cy="18" r="21" fill="white" />
+        `
+      }
     }
   }
 
@@ -206,7 +216,7 @@ module.exports = function (ip, whois, designation, date, getXYTile, compareTo, r
   <rect x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" 
           rx="15" ry="15" fill="${fillRect}" />
   <text text-anchor="middle" x="128" y="64" font-size="22"  >
-    ${ip}/8
+    ${ip}
   </text>
   <text text-anchor="middle" x="128" y="132" font-size="25" >
     ${whois}
