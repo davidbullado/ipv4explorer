@@ -27,13 +27,16 @@ var IPv4 = /** @class */ (function () {
         },
         set: function (val) {
             this.ipval = val;
-            this.point = IPv4.getPointFromVal(val);
+            this.point = null;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(IPv4.prototype, "pPoint", {
         get: function () {
+            if (!this.point) {
+                this.point = IPv4.getPointFromVal(this.ipval);
+            }
             return this.point;
         },
         set: function (p) {
@@ -55,12 +58,15 @@ var IPv4 = /** @class */ (function () {
         configurable: true
     });
     IPv4.prototype.getLastIPMask = function (mask) {
-        // number of lines
-        var height = 1 << ((32 - mask) >> 1);
-        var width = height;
-        var ipEnd = new IPv4();
+        /* number of lines
+        let height: number = 1 << ((32 - mask) >> 1);
+        let width: number = height;
+        const ipEnd: IPv4 = new IPv4();
         ipEnd.pPoint = { x: this.pPoint.x + width - 1, y: this.pPoint.y + height - 1 };
-        return ipEnd;
+        const ipTest: IPv4 =
+        console.log("test:"+ipTest.pVal+", "+ipEnd.pVal);
+        */
+        return new IPv4(this.pVal + Math.pow(2, (32 - mask)) - 1);
     };
     IPv4.getPointFromVal = function (ipval) {
         var twobit;

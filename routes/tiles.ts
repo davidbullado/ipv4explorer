@@ -7,6 +7,7 @@ import fs = require('fs');
 import IPv4 from "../ipv4/index";
 import path = require("path");
 import tilesvg = require("../build-tiles/tilesvg.js");
+import { bisectLeft } from "d3-array";
 
 const router: express.Router = express.Router();
 
@@ -17,16 +18,27 @@ function filterBetween(d) {
 function filter(d) {
     return (d.ipRangeStart.pVal <= this.ipStart && this.ipEnd <= d.ipRangeEnd.pVal) ||
         (this.ipStart <= d.ipRangeStart.pVal && d.ipRangeEnd.pVal <= this.ipEnd) ||
-        filterBetween.call({ value: this.ipStart }, d) ||
-        filterBetween.call({ value: this.ipEnd }, d);
+        d.ipRangeStart.pVal <= this.ipStart && this.ipStart <= d.ipRangeEnd.pVal||
+        d.ipRangeStart.pVal <= this.ipEnd && this.ipEnd <= d.ipRangeEnd.pVal;
 }
 
 function getCountries(ipValue: number, zoom: number) {
+    let res: string ;
     let ipEnd: IPv4 = new IPv4(ipValue);
     let result: string = "";
     ipEnd = ipEnd.getLastIPMask(zoom * 2);
+    let ipValueEnd: number = ipEnd.pVal;
 
-    let myRange = defaultExport.ipArray.filter(filter, { ipStart: ipValue, ipEnd: ipEnd.pVal });
+    //let myRange = defaultExport.ipArray.filter(filter, { ipStart: ipValue, ipEnd: ipEnd.pVal });
+    //console.log(myRange[0].ipRangeStart);
+    
+    let idLo = bisectLeft( defaultExport.ipArrayIdx, ipValue ) ;
+    let idHi = bisectLeft( defaultExport.ipArrayIdx, ipEnd.pVal ) ;
+    
+    let myRange = defaultExport.ipArray.slice(idLo,idHi+1);
+    
+   // console.log(myRange1[0].ipRangeStart);
+    
     let countryCode= new Set();
     let countryLabels = new Set();
 
@@ -35,15 +47,12 @@ function getCountries(ipValue: number, zoom: number) {
         countryLabels.add(r.countryLabel);
     });
 
-    let res: string = "" ;
-     
     if (countryLabels.size === 1){
         res = countryLabels.values().next().value; 
     } else {
         let arrCountryCode = Array.from(countryCode);
         res = arrCountryCode.slice(0,4).join(", ")+(countryCode.size > 4 ? ", "+arrCountryCode[4]+", ...": ""   );
     }
-
     return res;
 }
 
@@ -76,23 +85,14 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
     const z: number = Number(req.params.z);
     
     const file: string = path.join(__dirname, "../tiles_svg/", z + "/" + x + "/" + y);
-    console.log("Request: "+file);
 
     res.type("svg");
-    /*if (z===4) {
-        console.log("found: "+file);
-        res.sendFile(file);
-    } else */if (fs.existsSync(file)) {
-        console.log("found: "+file);
+    if (fs.existsSync(file)) {
         res.sendFile(file);
     } else {
 
         let myIP: IPv4 = getIPFromXYZ(x,y,z);
-        let myCountryList: string = ""; 
-        
-        if (z > 4) {
-            myCountryList = getCountries(myIP.pVal,z);
-        }
+
 
         let strIP: string = myIP.toString();
         // single ip scale
@@ -102,46 +102,18 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
 
         let folder = path.join(__dirname, "../tiles_svg");
         if (!fs.existsSync(folder)) {
-            console.log("Create folder: "+folder);
             fs.mkdirSync(folder);
         }
         folder = path.join(__dirname, "../tiles_svg/", "" + z);
         if (!fs.existsSync(folder)) {
-            console.log("Create folder: "+folder);
             fs.mkdirSync(folder);
         }
         folder += "/" + x;
         if (!fs.existsSync(folder)) {
-            console.log("Create folder: "+folder);
             fs.mkdirSync(folder);
         }
-    
 
-        //getXYTile : pour un x et y donné, retourne une row (contient x, y + infos discriminantes)
-        // x et y, quelle ip sachant z ?
-        // ip + range
-        // filter
-        
-        // (ip, whois, designation, date, getXYTile, compareTo, row)
-        console.log("Build tile "+strIP);
         let svgTileContent;
-
-
-        var getTileInfo = (ipTile: IPv4, point) => {
-            if (ipTile) {
-                const res = defaultExport.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal } );
-                return {x:point.x, y:point.y, desc:getCountries(ipTile.pVal,z), whois: res[0].whois};
-            } else {
-                return null;
-            }
-        };
-        var getXYTile = (point) => {
-            const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,z);
-            return getTileInfo(ipTile, point);
-        };
-        var compareTiles = (tile1, tile2) => {
-            return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;
-        };
 
         // 
         if (z >= 4) {
@@ -158,7 +130,22 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
             let date: string = "";
             let designation: string = "";
             let title: string = "";
-            if (z===4){
+            
+             var getTileInfo ;
+             
+             if ( z > 6 ) {
+                designation =  getCountries(myIP.pVal,z);
+                title = myRIR.whois;
+                getTileInfo = (ipTile: IPv4, point) => {
+                    if (ipTile) {
+                        const resWhois = defaultExport.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal } );
+                        let res= {x:point.x, y:point.y, desc:getCountries(ipTile.pVal,z), whois: resWhois[0].whois};
+                        return res;
+                    } else {
+                        return null;
+                    }
+                };
+            } else  {
                 date = myRIR.date;
                 designation = myRIR.designation;
                 title = myRIR.whois;
@@ -170,16 +157,21 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
                         return null;
                     }
                 };
-            } else {
-                designation = myCountryList;
-                title = myRIR.whois;
             }
             let row = getTileInfo(myIP, {x:x, y:y});
+           
+            var getXYTile = (point) => {
+                const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,z);
+                return getTileInfo(ipTile, point);
+            };
+            var compareTiles = (tile1, tile2) => {
+                return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;
+            };
             // 
             svgTileContent = tilesvg(strIP, title, designation, date, getXYTile, compareTiles, row);
         } else {
 
-            svgTileContent = tilesvg(strIP, "", "", "", null, null, {x:x, y:y, desc: myCountryList}, "#f0f0f0");
+            svgTileContent = tilesvg(strIP, "", "", "", null, null, {x:x, y:y, desc: ""}, "#f0f0f0");
         }
 
         /*

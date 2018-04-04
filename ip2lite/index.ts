@@ -23,8 +23,9 @@ interface IWhois {
 }
 let ip2lite: {
     ipArray: IDataIP[],
+    ipArrayIdx: number[],
     ipWhois: IWhois[]
-} = { ipArray: null, ipWhois: null };
+} = { ipArray: null, ipArrayIdx: [], ipWhois: null };
 
 var processRow = (row) => {
     var extractDigit = new RegExp(/0*(\d+)/) ;
@@ -65,11 +66,6 @@ var processRow = (row) => {
 
 //export function start(res: express.Response) {
 export function start(callback) {
-    console.log("Load: ipv4-address-space.csv");
-    var buf = fs.readFileSync("./build-tiles/ipv4-address-space.csv");
-    console.log("csvParse: ipv4-address-space.csv");
-    ip2lite.ipWhois = csvParse(buf.toString(), processRow );
-    console.log("csvParse: ok");
 
     fetch(urlLoc)
         .then(res => res.text())
@@ -85,14 +81,23 @@ export function start(callback) {
                     }
                 return ipRes;
             });
-
-            ip2lite.ipArray = ip2lite.ipArray.filter(value => {
+            
+            ip2lite.ipArray.forEach(function (item) { ip2lite.ipArrayIdx.push(item.ipRangeEnd.pVal) });
+       
+          /*  ip2lite.ipArray = ip2lite.ipArray.filter(value => {
                 return value.countryCode != "-";
             });
-
+            */
             console.log("Successfully fetched elements: "+ip2lite.ipArray.length);
             callback();
         });
+        
+    console.log("Load: ipv4-address-space.csv");
+    var buf = fs.readFileSync("./build-tiles/ipv4-address-space.csv");
+    console.log("csvParse: ipv4-address-space.csv");
+    ip2lite.ipWhois = csvParse(buf.toString(), processRow );
+    console.log("csvParse: ok");
+
 }
 
 export default ip2lite;

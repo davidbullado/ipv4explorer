@@ -43,10 +43,13 @@ class IPv4 {
     }
     set pVal(val: number) {
         this.ipval = val;
-        this.point = IPv4.getPointFromVal(val);
+        this.point = null;
     }
 
     get pPoint(): IPoint {
+        if (!this.point){
+            this.point = IPv4.getPointFromVal(this.ipval);
+        }
         return this.point;
     }
     set pPoint(p: IPoint) {
@@ -63,12 +66,15 @@ class IPv4 {
     }
 
     public getLastIPMask(mask: number) {
-        // number of lines
+        /* number of lines
         let height: number = 1 << ((32 - mask) >> 1);
         let width: number = height;
         const ipEnd: IPv4 = new IPv4();
         ipEnd.pPoint = { x: this.pPoint.x + width - 1, y: this.pPoint.y + height - 1 };
-        return ipEnd;
+        const ipTest: IPv4 = 
+        console.log("test:"+ipTest.pVal+", "+ipEnd.pVal);
+        */
+        return new IPv4(this.pVal+ Math.pow(2,(32-mask))-1);
     }
 
     static getPointFromVal(ipval: number): IPoint {

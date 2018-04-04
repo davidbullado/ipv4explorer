@@ -1,5 +1,9 @@
-function getColorFromWhois (whois) {
+function getColorFromWhois (whois, designation) {
+  if (!designation || designation === ""){
+    designation = "void";
+  }
   var fillRect = "";
+  
   switch (whois) {
     case 'IANA':
       fillRect="#f0f0f0";
@@ -20,11 +24,48 @@ function getColorFromWhois (whois) {
       fillRect="#C9BAD7";
       break;
     default:
-     fillRect="white";
+     fillRect="#FFFFFF";
   }
+  
+  fillRect = colorObjectToString( meanColor(colorStringToObject(fillRect), stringToColour(designation)) );
+  
   return fillRect;
 }
 
+function colorStringToObject (colorStr) {
+  return {
+    r: parseInt("0x"+colorStr.substr(1,2)),
+    g: parseInt("0x"+colorStr.substr(3,2)),
+    b: parseInt("0x"+colorStr.substr(5,2))
+  }
+}
+
+function meanColor (c1, c2) {
+  return {
+    r: Math.round(Math.sqrt((c1.r*c1.r*0.9 + c2.r*c2.r*0.1))),
+    g: Math.round(Math.sqrt((c1.g*c1.g*0.9 + c2.g*c2.g*0.1))),
+    b: Math.round(Math.sqrt((c1.b*c1.b*0.9 + c2.b*c2.b*0.1)))
+  }
+}
+
+function colorObjectToString (colorObj){
+  
+  return "#" + ("00"+colorObj.r.toString(16)).slice(-2) + ("00"+colorObj.g.toString(16)).slice(-2) + ("00"+colorObj.b.toString(16)).slice(-2);
+  
+}
+
+var stringToColour = function(str) {
+
+    var hash = 0;
+    for (var i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return {
+      r: hash & 0xff,
+      g: (hash >> 8) & 0xff,
+      b: (hash >> 16) & 0xff
+    };
+}
 
 module.exports = function (ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
 
@@ -33,7 +74,7 @@ module.exports = function (ip, whois, designation, date, getXYTile, compareTo, r
   if (colorRect){
     fillRect = colorRect;
   } else {
-    fillRect = getColorFromWhois(whois);
+    fillRect = getColorFromWhois(whois,designation);
   }
 
   var join = "";
@@ -43,6 +84,7 @@ module.exports = function (ip, whois, designation, date, getXYTile, compareTo, r
     width:250,
     height:250
   } ;
+  
 
   if (getXYTile && compareTo) {
     var myNeighbors = [
@@ -67,6 +109,7 @@ module.exports = function (ip, whois, designation, date, getXYTile, compareTo, r
             }
         }
     }
+
     var nbTop   = myNeighbors[0][1];
     var nbRight = myNeighbors[1][2];
     var nbBot   = myNeighbors[2][1];
