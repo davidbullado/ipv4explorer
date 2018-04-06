@@ -1,3 +1,6 @@
+import IPv4 from "../../ipv4/index";
+import * as L from "leaflet";
+
 let mymap: L.Map = L.map("mapid").setView([0, 0], 1);/*.setMaxBounds([
     [-90, -180],
     [90, 180]
@@ -35,87 +38,6 @@ function getIpVal(x: number, y: number, z: number): number {
 
     }
     return ipval;
-}
-
-class IPv4 {
-
-    private ipval: number;
-    private point: IPoint;
-
-    static pow_2_16: number = Math.pow(2, 16);
-    static pow_256_3: number = Math.pow(256, 3);
-    static pow_256_2: number = Math.pow(256, 2);
-
-    constructor(value: number = 0) {
-        this.pVal = value;
-    }
-
-    public toString = (): string => {
-        return this.pString;
-    }
-
-    get pVal(): number {
-        return this.ipval;
-    }
-    set pVal(val: number) {
-        this.ipval = val;
-        this.point = IPv4.getPointFromVal(val);
-    }
-
-    get pPoint(): IPoint {
-        return this.point;
-    }
-    set pPoint(p: IPoint) {
-        this.point = p;
-        this.ipval = getIpVal(p.x, p.y, 16);
-    }
-
-    get pString(): string {
-        return [this.ipval >> 24 & 0xff, this.ipval >> 16 & 0xff, this.ipval >> 8 & 0xff, this.ipval & 0xff].join(".");
-    }
-    set pString(s: string) {
-        const arr: string[] = s.split(".");
-        this.pVal = IPv4.getIntValue(Number(arr[0]), Number(arr[1]), Number(arr[2]), Number(arr[3]));
-    }
-
-    public getLastIPMask(mask: number) {
-        // number of lines
-        let height: number = 1 << ((32 - mask) >> 1);
-        let width: number = height;
-        const ipEnd: IPv4 = new IPv4();
-        ipEnd.pPoint = { x: this.pPoint.x + width - 1, y: this.pPoint.y + height - 1 };
-        return ipEnd;
-    }
-
-    static getPointFromVal(ipval: number): IPoint {
-        let twobit: number;
-        let x: number = 0;
-        let y: number = 0;
-
-        for (let i: number = 15; i >= 0; i--) {
-            twobit = (ipval >> i * 2) & 3;
-            x += (twobit & 1) * Math.pow(2, i);
-            y += ((twobit >> 1) & 1) * Math.pow(2, i);
-        }
-
-        return { y: y, x: x };
-    }
-
-    static newIPv4FromString(s: string): IPv4 {
-        let myip: IPv4 = new IPv4();
-        myip.pString = s;
-        return myip;
-    }
-
-    static newIPv4FromPoint(p: IPoint): IPv4 {
-        let myip: IPv4 = new IPv4();
-        myip.pPoint = p;
-        return myip;
-    }
-
-    static getIntValue(ip_b3: number, ip_b2: number, ip_b1: number, ip_b0: number): number {
-        return ip_b3 * IPv4.pow_256_3 + ip_b2 * IPv4.pow_256_2 + ip_b1 * 256 + ip_b0;
-    }
 }
 
 function getAbsolutePoint(map: L.Map, latlng: L.LatLng ): L.Point {

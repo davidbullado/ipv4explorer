@@ -1,3 +1,7 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var index_1 = require("../../ipv4/index");
+var L = require("leaflet");
 var mymap = L.map("mapid").setView([0, 0], 1); /*.setMaxBounds([
     [-90, -180],
     [90, 180]
@@ -24,85 +28,6 @@ function getIpVal(x, y, z) {
     }
     return ipval;
 }
-var IPv4 = /** @class */ (function () {
-    function IPv4(value) {
-        if (value === void 0) { value = 0; }
-        var _this = this;
-        this.toString = function () {
-            return _this.pString;
-        };
-        this.pVal = value;
-    }
-    Object.defineProperty(IPv4.prototype, "pVal", {
-        get: function () {
-            return this.ipval;
-        },
-        set: function (val) {
-            this.ipval = val;
-            this.point = IPv4.getPointFromVal(val);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(IPv4.prototype, "pPoint", {
-        get: function () {
-            return this.point;
-        },
-        set: function (p) {
-            this.point = p;
-            this.ipval = getIpVal(p.x, p.y, 16);
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(IPv4.prototype, "pString", {
-        get: function () {
-            return [this.ipval >> 24 & 0xff, this.ipval >> 16 & 0xff, this.ipval >> 8 & 0xff, this.ipval & 0xff].join(".");
-        },
-        set: function (s) {
-            var arr = s.split(".");
-            this.pVal = IPv4.getIntValue(Number(arr[0]), Number(arr[1]), Number(arr[2]), Number(arr[3]));
-        },
-        enumerable: true,
-        configurable: true
-    });
-    IPv4.prototype.getLastIPMask = function (mask) {
-        // number of lines
-        var height = 1 << ((32 - mask) >> 1);
-        var width = height;
-        var ipEnd = new IPv4();
-        ipEnd.pPoint = { x: this.pPoint.x + width - 1, y: this.pPoint.y + height - 1 };
-        return ipEnd;
-    };
-    IPv4.getPointFromVal = function (ipval) {
-        var twobit;
-        var x = 0;
-        var y = 0;
-        for (var i = 15; i >= 0; i--) {
-            twobit = (ipval >> i * 2) & 3;
-            x += (twobit & 1) * Math.pow(2, i);
-            y += ((twobit >> 1) & 1) * Math.pow(2, i);
-        }
-        return { y: y, x: x };
-    };
-    IPv4.newIPv4FromString = function (s) {
-        var myip = new IPv4();
-        myip.pString = s;
-        return myip;
-    };
-    IPv4.newIPv4FromPoint = function (p) {
-        var myip = new IPv4();
-        myip.pPoint = p;
-        return myip;
-    };
-    IPv4.getIntValue = function (ip_b3, ip_b2, ip_b1, ip_b0) {
-        return ip_b3 * IPv4.pow_256_3 + ip_b2 * IPv4.pow_256_2 + ip_b1 * 256 + ip_b0;
-    };
-    IPv4.pow_2_16 = Math.pow(2, 16);
-    IPv4.pow_256_3 = Math.pow(256, 3);
-    IPv4.pow_256_2 = Math.pow(256, 2);
-    return IPv4;
-}());
 function getAbsolutePoint(map, latlng) {
     var p = map.project(latlng, map.getZoom());
     return p.multiplyBy(Math.pow(2, map.getMaxZoom() - map.getZoom() - 8)).floor();
@@ -126,10 +51,10 @@ function castLPoint(p) {
 }
 function poligonizify(ipCIDR, label, color) {
     var twopart = ipCIDR.split("/");
-    var ipTopLeft = IPv4.newIPv4FromString(twopart[0]);
-    var ipBotLeft = new IPv4();
-    var ipTopRight = new IPv4();
-    var ipBotRight = new IPv4();
+    var ipTopLeft = index_1.default.newIPv4FromString(twopart[0]);
+    var ipBotLeft = new index_1.default();
+    var ipTopRight = new index_1.default();
+    var ipBotRight = new index_1.default();
     var mask = Number(twopart[1]);
     var ipEnd = ipTopLeft.getLastIPMask(mask);
     // thanks https://stackoverflow.com/questions/4460586/javascript-regular-expression-to-check-for-ip-addresses
@@ -157,14 +82,14 @@ function poligonizify(ipCIDR, label, color) {
 var popup = L.popup();
 function onMapClick(e) {
     var mypoint = mymap.project(e.latlng, mymap.getZoom());
-    var myip = IPv4.newIPv4FromPoint(getAbsolutePoint(mymap, e.latlng));
+    var myip = index_1.default.newIPv4FromPoint(getAbsolutePoint(mymap, e.latlng));
     popup
         .setLatLng(e.latlng)
         .setContent(myip.toString())
         .openOn(mymap);
 }
 mymap.on("click", onMapClick);
-var myip = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
+var myip = index_1.default.newIPv4FromString(document.getElementById("ip").innerText);
 L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
     .bindPopup("You are here.<br/>" + myip).openPopup();
 var arrCIDR = [
