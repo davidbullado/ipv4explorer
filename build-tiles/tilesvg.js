@@ -72,7 +72,9 @@ module.exports = function (ip, whois, designation, date, getXYTile, compareTo, r
   var fillRect ;
 
   if (colorRect){
+    
     fillRect = colorRect;
+    
   } else {
     fillRect = getColorFromWhois(whois,designation);
   }
@@ -270,6 +272,8 @@ module.exports = function (ip, whois, designation, date, getXYTile, compareTo, r
   <text text-anchor="end" x="240" y="240" font-size="16" >
     ${date}
   </text>
+  <path stroke-dasharray="4,4" d="M255 0 l0 255" stroke="white" fill="none" />
+  <path stroke-dasharray="4,4" d="M0 255 l255 0" stroke="white" fill="none" />
 </svg>
 `;
 }

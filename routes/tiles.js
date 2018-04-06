@@ -146,7 +146,7 @@ router.get("/:z/:x/:y", function (req, res) {
             svgTileContent = tilesvg(strIP, title, designation, date, getXYTile, compareTiles, row);
         }
         else {
-            svgTileContent = tilesvg(strIP, "", "", "", null, null, { x: x, y: y, desc: "" }, "#f0f0f0");
+            svgTileContent = tilesvg(strIP, "", "", "", null, null, { x: x, y: y, desc: "" }, "#e0e0e0");
         }
         /*
                 // more than one
