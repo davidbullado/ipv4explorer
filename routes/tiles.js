@@ -148,24 +148,6 @@ router.get("/:z/:x/:y", function (req, res) {
         else {
             svgTileContent = tilesvg(strIP, "", "", "", null, null, { x: x, y: y, desc: "" }, "#e0e0e0");
         }
-        /*
-                // more than one
-                if (myRIRs.length > 1) {
-                    
-                    let setRIR = new Set();
-                    // remove duplicates
-                    myRIRs.forEach(r => setRIR.add(r.whois));
-                    // concat whois
-                    const strRIRlist: string = Array.from(setRIR).join(', ');
-                    
-                    svgTileContent = tilesvg(strIP, strRIRlist, myCountryList, "", getXYTile, (row1, row2) => row1.desc === row2.desc , {x:x, y:y, desc: myCountryList});
-                    
-                } else{
-
-                    svgTileContent = tilesvg(strIP, myRIRs[0].whois, myCountryList, "", getXYTile, (row1, row2) => row1.desc === row2.desc , {x:x, y:y, desc: myCountryList});
-
-                }
-        */
         var callback = function (err) {
             res.type("svg");
             res.sendFile(file);
