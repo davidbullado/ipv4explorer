@@ -4,7 +4,6 @@ var debug = require("debug");
 var express = require("express");
 var path = require("path");
 var index_1 = require("./routes/index");
-var user_1 = require("./routes/user");
 var tiles_1 = require("./routes/tiles");
 var app = express();
 // view engine setup
@@ -12,7 +11,6 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'dist')));
 app.use('/', index_1.default);
-app.use('/users', user_1.default);
 app.use('/tiles', tiles_1.default);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

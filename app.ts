@@ -3,7 +3,6 @@ import express = require("express");
 import path = require("path");
 
 import routes from "./routes/index";
-import users from "./routes/user";
 import tiles from "./routes/tiles";
 
 var app = express();
@@ -15,7 +14,6 @@ app.set('view engine', 'pug');
 app.use(express.static(path.join(__dirname, 'dist')));
 
 app.use('/', routes);
-app.use('/users', users);
 app.use('/tiles', tiles);
 
 // catch 404 and forward to error handler
