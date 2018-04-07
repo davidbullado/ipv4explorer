@@ -20,3 +20,9 @@ a {
 #ip {
     display: none;
 }
+
+.whois {
+    max-height:300px;
+    white-space: pre;
+    overflow:scroll;
+}

@@ -4,6 +4,7 @@ import path = require("path");
 
 import routes from "./routes/index";
 import tiles from "./routes/tiles";
+import whois from "./routes/whois";
 
 var app = express();
 
@@ -15,6 +16,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 app.use('/', routes);
 app.use('/tiles', tiles);
+app.use('/whois', whois);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

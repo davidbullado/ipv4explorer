@@ -83,10 +83,37 @@ var popup = L.popup();
 function onMapClick(e) {
     var mypoint = mymap.project(e.latlng, mymap.getZoom());
     var myip = index_1.default.newIPv4FromPoint(getAbsolutePoint(mymap, e.latlng));
-    popup
-        .setLatLng(e.latlng)
-        .setContent(myip.toString())
-        .openOn(mymap);
+    /* popup
+         .setLatLng(e.latlng)
+         .setContent(myip.toString())
+         .openOn(mymap);
+ */
+    query(myip.toString(), function (whois) {
+        popup
+            .setLatLng(e.latlng)
+            .setContent('<div class="whois">' + whois + '</div>')
+            .openOn(mymap);
+    });
+}
+function query(ip, callback) {
+    var request = new XMLHttpRequest();
+    request.open('GET', '/whois/' + ip, true);
+    request.onload = function () {
+        if (request.status >= 200 && request.status < 400) {
+            // Success!
+            var resp = request.responseText;
+            callback(resp);
+        }
+        else {
+            // We reached our target server, but it returned an error
+            console.log('We reached our target server, but it returned an error');
+        }
+    };
+    request.onerror = function () {
+        // There was a connection error of some sort
+        console.log('There was a connection error of some sort');
+    };
+    request.send();
 }
 mymap.on("click", onMapClick);
 var myip = index_1.default.newIPv4FromString(document.getElementById("ip").innerText);
