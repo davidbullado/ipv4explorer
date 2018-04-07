@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 function getColorFromWhois(whois, designation) {
     if (!designation || designation === "") {
         designation = "void";
@@ -56,7 +58,7 @@ var stringToColour = function (str) {
         b: (hash >> 16) & 0xff
     };
 };
-module.exports = function (ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
+function tileConstruct(ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
     var fillRect;
     if (colorRect) {
         fillRect = colorRect;
@@ -178,5 +180,6 @@ module.exports = function (ip, whois, designation, date, getXYTile, compareTo, r
         }
     }
     return "<?xml version=\"1.0\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \n  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n\n<svg width=\"256px\" height=\"256px\" version=\"1.1\"\n     viewBox=\"0 0 256 256\" preserveAspectRatio=\"none\"\n     xmlns=\"http://www.w3.org/2000/svg\">\n  <defs>\n    <style type=\"text/css\">\n    <![CDATA[\n    text {\n      font-family: \"Open Sans\",arial,x-locale-body,sans-serif;\n      fill: #555;\n    }\n    ]]>\n  </style>\n  </defs>\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\"  >\n    " + ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"190\" font-size=\"13\" >\n  <![CDATA[" + designation + "]]>\n  </text>\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" >\n    " + date + "\n  </text>\n  <path stroke-dasharray=\"4,4\" d=\"M255 0 l0 255\" stroke=\"white\" fill=\"none\" />\n  <path stroke-dasharray=\"4,4\" d=\"M0 255 l255 0\" stroke=\"white\" fill=\"none\" />\n</svg>\n";
-};
+}
+exports.tileConstruct = tileConstruct;
 //# sourceMappingURL=tilesvg.js.map

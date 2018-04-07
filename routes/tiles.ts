@@ -6,7 +6,7 @@ import defaultExport from "../ip2lite";
 import fs = require('fs');
 import IPv4 from "../ipv4/index";
 import path = require("path");
-import tilesvg = require("../build-tiles/tilesvg.js");
+import { tileConstruct } from "../build-tiles/tilesvg";
 import { bisectLeft } from "d3-array";
 
 const router: express.Router = express.Router();
@@ -168,10 +168,10 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
                 return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;
             };
             // 
-            svgTileContent = tilesvg(strIP, title, designation, date, getXYTile, compareTiles, row);
+            svgTileContent = tileConstruct(strIP, title, designation, date, getXYTile, compareTiles, row, null);
         } else {
 
-            svgTileContent = tilesvg(strIP, "", "", "", null, null, {x:x, y:y, desc: ""}, "#e0e0e0");
+            svgTileContent = tileConstruct(strIP, "", "", "", null, null, {x:x, y:y, desc: ""}, "#e0e0e0");
         }
 
         let callback = (err) => {

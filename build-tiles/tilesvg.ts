@@ -67,7 +67,7 @@ var stringToColour = function(str) {
     };
 }
 
-module.exports = function (ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
+function tileConstruct (ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
 
   var fillRect ;
 
@@ -277,3 +277,4 @@ module.exports = function (ip, whois, designation, date, getXYTile, compareTo, r
 </svg>
 `;
 }
+export { tileConstruct }

@@ -2,7 +2,7 @@
 import request = require('sync-request');
 import d3 = require("d3-dsv");
 import fs = require("fs");
-import tileConstruct = require("./tilesvg");
+import { tileConstruct } from "./tilesvg";
 import IPv4 from "../ipv4";
 
 var buf = fs.readFileSync("./ipv4-address-space.csv");
@@ -66,7 +66,6 @@ result.forEach(function(row) {
     
     var filename = `../tiles_svg/4/${row.x}/${row.y}`;
   
-      
-    fs.writeFileSync(filename,tileConstruct(row.ip,row.whois,row.designation,row.date,getXYTile,compareTo, row));
+    fs.writeFileSync(filename,tileConstruct(row.ip,row.whois,row.designation,row.date,getXYTile,compareTo, row, null));
 
   });

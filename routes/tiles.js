@@ -8,7 +8,7 @@ var ip2lite_1 = require("../ip2lite");
 var fs = require("fs");
 var index_1 = require("../ipv4/index");
 var path = require("path");
-var tilesvg = require("../build-tiles/tilesvg.js");
+var tilesvg_1 = require("../build-tiles/tilesvg");
 var d3_array_1 = require("d3-array");
 var router = express.Router();
 function filterBetween(d) {
@@ -143,10 +143,10 @@ router.get("/:z/:x/:y", function (req, res) {
                 return tile1.desc === tile2.desc && tile1.whois === tile2.whois;
             };
             // 
-            svgTileContent = tilesvg(strIP, title, designation, date, getXYTile, compareTiles, row);
+            svgTileContent = tilesvg_1.tileConstruct(strIP, title, designation, date, getXYTile, compareTiles, row, null);
         }
         else {
-            svgTileContent = tilesvg(strIP, "", "", "", null, null, { x: x, y: y, desc: "" }, "#e0e0e0");
+            svgTileContent = tilesvg_1.tileConstruct(strIP, "", "", "", null, null, { x: x, y: y, desc: "" }, "#e0e0e0");
         }
         var callback = function (err) {
             res.type("svg");

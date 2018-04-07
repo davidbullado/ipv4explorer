@@ -1,5 +1,8 @@
-body {
-    padding: 50px;
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
     font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
@@ -7,32 +10,13 @@ a {
     color: #00B7FF;
 }
 
-/* thanks for Cross-browser Vertical & Horizontal Centering http://emergentweb.com/test/valign.html */
-.outter {
-    width: 100%;
-    padding: 0;
-    display: table;
-    height: 100%;
-    position: absolute;
-    top: 0;
-    left: 0;
-    margin: 0;
-}
-
-.middle {
-    padding: 0;
-    vertical-align: middle;
-    display: table-cell;
-    /* margin: 0;*/
-}
-
-.inner {
-	margin: 0 auto;
-}
-
 #mapid {
 	width: 100%;
 	height: 100%;
-	border: 1px solid #eee;
 	background-color: #fdfdfd;
+	position: static !important;
+}
+
+#ip {
+    display: none;
 }
