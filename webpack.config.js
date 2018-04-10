@@ -12,5 +12,6 @@ module.exports = {
       test: /\.pug/,
       loaders: ['html-loader', 'pug-html-loader']
     }]
-  }
+  },
+  devtool: 'source-map'
 };

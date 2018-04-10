@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var d3_dsv_1 = require("d3-dsv");
-var node_fetch_1 = require("node-fetch");
 var index_1 = require("../ipv4/index");
+var sync_request_1 = require("sync-request");
 var fs = require("fs");
 var urlLoc = "https://github.com/davidbullado/ip2location/raw/master/IP2LOCATION-LITE-DB1.CSV";
 var ip2lite = { ipArray: null, ipArrayIdx: [], ipWhois: null };
+exports.ip2lite = ip2lite;
 var processRow = function (row) {
     var extractDigit = new RegExp(/0*(\d+)/);
     var r = extractDigit.exec(row.Prefix);
@@ -38,36 +39,34 @@ var processRow = function (row) {
         date: row.Date
     };
 };
-//export function start(res: express.Response) {
-function start(callback) {
-    node_fetch_1.default(urlLoc)
-        .then(function (res) { return res.text(); })
-        .then(function (body) {
-        console.log("Parse csv...");
-        //: [number, number, string, string]
-        ip2lite.ipArray = d3_dsv_1.csvParseRows(body, function (row) {
-            var ipRes = {
-                ipRangeStart: new index_1.default(Number(row[0])),
-                ipRangeEnd: new index_1.default(Number(row[1])),
-                countryCode: row[2],
-                countryLabel: row[3]
-            };
-            return ipRes;
-        });
-        ip2lite.ipArray.forEach(function (item) { ip2lite.ipArrayIdx.push(item.ipRangeEnd.pVal); });
-        /*  ip2lite.ipArray = ip2lite.ipArray.filter(value => {
-              return value.countryCode != "-";
-          });
-          */
-        console.log("Successfully fetched elements: " + ip2lite.ipArray.length);
-        callback();
+function loadData() {
+    var body;
+    if (!fs.existsSync("./IP2LOCATION-LITE-DB1.CSV")) {
+        console.log("Download csv...");
+        body = sync_request_1.default('GET', urlLoc).getBody();
+        fs.writeFileSync("./IP2LOCATION-LITE-DB1.CSV", body.toString());
+    }
+    else {
+        body = fs.readFileSync("./IP2LOCATION-LITE-DB1.CSV").toString();
+    }
+    console.log("Parse csv...");
+    ip2lite.ipArray = d3_dsv_1.csvParseRows(body, function (row) {
+        var ipRes = {
+            ipRangeStart: new index_1.default(Number(row[0])),
+            ipRangeEnd: new index_1.default(Number(row[1])),
+            countryCode: row[2],
+            countryLabel: row[3]
+        };
+        return ipRes;
     });
+    // Index by end ip.
+    ip2lite.ipArray.forEach(function (item) { ip2lite.ipArrayIdx.push(item.ipRangeEnd.pVal); });
+    console.log("Parse csv ok: " + ip2lite.ipArray.length);
     console.log("Load: ipv4-address-space.csv");
     var buf = fs.readFileSync("./build-tiles/ipv4-address-space.csv");
     console.log("csvParse: ipv4-address-space.csv");
     ip2lite.ipWhois = d3_dsv_1.csvParse(buf.toString(), processRow);
     console.log("csvParse: ok");
 }
-exports.start = start;
-exports.default = ip2lite;
+exports.loadData = loadData;
 //# sourceMappingURL=index.js.map

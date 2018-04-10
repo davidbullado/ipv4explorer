@@ -2,8 +2,9 @@ import { csvParseRows, csvParse } from "d3-dsv";
 import fetch from "node-fetch";
 import IPv4 from "../ipv4/index";
 import express = require('express');
+import request from 'sync-request';
 
-var fs:any = require("fs");
+import fs = require("fs");
 
 const urlLoc: string = "https://github.com/davidbullado/ip2location/raw/master/IP2LOCATION-LITE-DB1.CSV";
 
@@ -63,35 +64,33 @@ var processRow = (row) => {
     };
 };
 
+function loadData() {
+    var body ;
 
-//export function start(res: express.Response) {
-export function start(callback) {
+    if (!fs.existsSync("./IP2LOCATION-LITE-DB1.CSV")){
+        console.log("Download csv...");
+        body = request('GET', urlLoc).getBody();
+        fs.writeFileSync("./IP2LOCATION-LITE-DB1.CSV",body.toString());
+    } else {
+        body = fs.readFileSync("./IP2LOCATION-LITE-DB1.CSV").toString();
+    }
 
-    fetch(urlLoc)
-        .then(res => res.text())
-        .then(body => {
-            console.log("Parse csv...");
-            //: [number, number, string, string]
-            ip2lite.ipArray = csvParseRows(body, (row) => {
-                let ipRes: IDataIP = {
-                        ipRangeStart: new IPv4(Number(row[0])),
-                        ipRangeEnd: new IPv4(Number(row[1])),
-                        countryCode: row[2],
-                        countryLabel: row[3]
-                    }
-                return ipRes;
-            });
-            
-            ip2lite.ipArray.forEach(function (item) { ip2lite.ipArrayIdx.push(item.ipRangeEnd.pVal) });
-       
-          /*  ip2lite.ipArray = ip2lite.ipArray.filter(value => {
-                return value.countryCode != "-";
-            });
-            */
-            console.log("Successfully fetched elements: "+ip2lite.ipArray.length);
-            callback();
-        });
-        
+    console.log("Parse csv...");
+
+    ip2lite.ipArray = csvParseRows(body, (row) => {
+        let ipRes: IDataIP = {
+                ipRangeStart: new IPv4(Number(row[0])),
+                ipRangeEnd: new IPv4(Number(row[1])),
+                countryCode: row[2],
+                countryLabel: row[3]
+            }
+        return ipRes;
+    });
+
+    // Index by end ip.
+    ip2lite.ipArray.forEach(function (item) { ip2lite.ipArrayIdx.push(item.ipRangeEnd.pVal) });
+    console.log("Parse csv ok: "+ip2lite.ipArray.length);
+
     console.log("Load: ipv4-address-space.csv");
     var buf = fs.readFileSync("./build-tiles/ipv4-address-space.csv");
     console.log("csvParse: ipv4-address-space.csv");
@@ -100,4 +99,5 @@ export function start(callback) {
 
 }
 
-export default ip2lite;
+export {ip2lite};
+export {loadData};

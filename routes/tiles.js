@@ -29,9 +29,9 @@ function getCountries(ipValue, zoom) {
     var ipValueEnd = ipEnd.pVal;
     //let myRange = defaultExport.ipArray.filter(filter, { ipStart: ipValue, ipEnd: ipEnd.pVal });
     //console.log(myRange[0].ipRangeStart);
-    var idLo = d3_array_1.bisectLeft(ip2lite_1.default.ipArrayIdx, ipValue);
-    var idHi = d3_array_1.bisectLeft(ip2lite_1.default.ipArrayIdx, ipEnd.pVal);
-    var myRange = ip2lite_1.default.ipArray.slice(idLo, idHi + 1);
+    var idLo = d3_array_1.bisectLeft(ip2lite_1.ip2lite.ipArrayIdx, ipValue);
+    var idHi = d3_array_1.bisectLeft(ip2lite_1.ip2lite.ipArrayIdx, ipEnd.pVal);
+    var myRange = ip2lite_1.ip2lite.ipArray.slice(idLo, idHi + 1);
     // console.log(myRange1[0].ipRangeStart);
     var countryCode = new Set();
     var countryLabels = new Set();
@@ -94,7 +94,7 @@ router.get("/:z/:x/:y", function (req, res) {
         // 
         if (z >= 4) {
             // list all Regional Internet Registries where my ip belong
-            var myRIRs = ip2lite_1.default.ipWhois.filter(filter, { ipStart: myIP.pVal, ipEnd: myIP.getLastIPMask(z * 2).pVal });
+            var myRIRs = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: myIP.pVal, ipEnd: myIP.getLastIPMask(z * 2).pVal });
             if (!myRIRs || myRIRs.length === 0) {
                 console.log("error: whois cannot be found :" + myIP);
             }
@@ -111,7 +111,7 @@ router.get("/:z/:x/:y", function (req, res) {
                 title = myRIR.whois;
                 getTileInfo = function (ipTile, point) {
                     if (ipTile) {
-                        var resWhois = ip2lite_1.default.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal });
+                        var resWhois = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal });
                         var res_1 = { x: point.x, y: point.y, desc: getCountries(ipTile.pVal, z), whois: resWhois[0].whois };
                         return res_1;
                     }
@@ -126,7 +126,7 @@ router.get("/:z/:x/:y", function (req, res) {
                 title = myRIR.whois;
                 getTileInfo = function (ipTile, point) {
                     if (ipTile) {
-                        var res_2 = ip2lite_1.default.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal });
+                        var res_2 = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal });
                         return { x: point.x, y: point.y, desc: res_2[0].designation, whois: res_2[0].whois };
                     }
                     else {

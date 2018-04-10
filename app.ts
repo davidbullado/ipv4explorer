@@ -6,6 +6,11 @@ import routes from "./routes/index";
 import tiles from "./routes/tiles";
 import whois from "./routes/whois";
 
+import {loadData} from "./ip2lite";
+
+//Load data from csv
+loadData() ;
+
 var app = express();
 
 // view engine setup

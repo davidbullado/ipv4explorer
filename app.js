@@ -6,6 +6,9 @@ var path = require("path");
 var index_1 = require("./routes/index");
 var tiles_1 = require("./routes/tiles");
 var whois_1 = require("./routes/whois");
+var ip2lite_1 = require("./ip2lite");
+//Load data from csv
+ip2lite_1.loadData();
 var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

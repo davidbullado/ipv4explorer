@@ -2,7 +2,7 @@
  * GET tiles listing.
  */
 import express = require("express");
-import defaultExport from "../ip2lite";
+import { ip2lite } from "../ip2lite";
 import fs = require('fs');
 import IPv4 from "../ipv4/index";
 import path = require("path");
@@ -32,10 +32,10 @@ function getCountries(ipValue: number, zoom: number) {
     //let myRange = defaultExport.ipArray.filter(filter, { ipStart: ipValue, ipEnd: ipEnd.pVal });
     //console.log(myRange[0].ipRangeStart);
     
-    let idLo = bisectLeft( defaultExport.ipArrayIdx, ipValue ) ;
-    let idHi = bisectLeft( defaultExport.ipArrayIdx, ipEnd.pVal ) ;
+    let idLo = bisectLeft( ip2lite.ipArrayIdx, ipValue ) ;
+    let idHi = bisectLeft( ip2lite.ipArrayIdx, ipEnd.pVal ) ;
     
-    let myRange = defaultExport.ipArray.slice(idLo,idHi+1);
+    let myRange = ip2lite.ipArray.slice(idLo,idHi+1);
     
    // console.log(myRange1[0].ipRangeStart);
     
@@ -118,7 +118,7 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
         // 
         if (z >= 4) {
             // list all Regional Internet Registries where my ip belong
-            const myRIRs = defaultExport.ipWhois.filter(filter, { ipStart: myIP.pVal, ipEnd: myIP.getLastIPMask(z * 2).pVal } );
+            const myRIRs = ip2lite.ipWhois.filter(filter, { ipStart: myIP.pVal, ipEnd: myIP.getLastIPMask(z * 2).pVal } );
             if (!myRIRs || myRIRs.length === 0){
                 console.log("error: whois cannot be found :"+myIP );
             }
@@ -138,7 +138,7 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
                 title = myRIR.whois;
                 getTileInfo = (ipTile: IPv4, point) => {
                     if (ipTile) {
-                        const resWhois = defaultExport.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal } );
+                        const resWhois = ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal } );
                         let res= {x:point.x, y:point.y, desc:getCountries(ipTile.pVal,z), whois: resWhois[0].whois};
                         return res;
                     } else {
@@ -151,7 +151,7 @@ router.get("/:z/:x/:y", (req: express.Request, res: express.Response) => {
                 title = myRIR.whois;
                 getTileInfo = (ipTile: IPv4, point) => {
                     if (ipTile) {
-                        const res = defaultExport.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal } );
+                        const res = ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(z * 2).pVal } );
                         return {x:point.x, y:point.y, desc:res[0].designation, whois: res[0].whois};
                     } else {
                         return null;

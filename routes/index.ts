@@ -2,11 +2,11 @@
  * GET home page.
  */
 import express = require('express');
-import * as ip2lite from "../ip2lite";
+
 const router = express.Router();
 
 router.get('/', (req: express.Request, res: express.Response) => {
-
+    /*
     let renderIndex = () => res.render('index', { title: 'IPv4 Explorer', myip: req.header('x-forwarded-for') || req.connection.remoteAddress });
 
     if (!ip2lite.default.ipArray) {
@@ -16,7 +16,8 @@ router.get('/', (req: express.Request, res: express.Response) => {
         //res.render('index', { title: 'Express', myip: req.header('x-forwarded-for') || req.connection.remoteAddress });
         renderIndex();
     }
-
+    */
+    res.render('index', { title: 'IPv4 Explorer', myip: req.header('x-forwarded-for') || req.connection.remoteAddress });
     
 });
 

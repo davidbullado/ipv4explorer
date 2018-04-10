@@ -21,7 +21,8 @@
     "npm": "^5.8.0",
     "pug": "^2.0.1",
     "sync-request": "^6.0.0",
-    "whois": "^2.5.10"
+    "whois": "^2.5.10",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "@types/debug": "0.0.30",
