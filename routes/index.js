@@ -17,11 +17,12 @@ router.get('/', function (req, res) {
         renderIndex();
     }
     */
-    res.render('index', { title: 'IPv4 Explorer', myip: req.header('x-forwarded-for') || req.connection.remoteAddress });
+    res.render('index', { title: 'IPv4', myip: req.header('x-real-ip') || req.connection.remoteAddress });
 });
 router.get('/ip', function (req, res) {
     // thanks https://www.hacksparrow.com/node-js-get-ip-address.html
-    res.send(req.header('x-forwarded-for') || req.connection.remoteAddress);
+    console.log(JSON.stringify(req.headers));
+    res.send(req.header('x-real-ip') || req.connection.remoteAddress);
 });
 exports.default = router;
 //# sourceMappingURL=index.js.map
