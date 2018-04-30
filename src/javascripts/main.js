@@ -1,4 +1,14 @@
 "use strict";
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var index_1 = require("../../ipv4/index");
 var L = require("leaflet");
@@ -137,14 +147,24 @@ var arrCIDR = [
     { ipr: "240.0.0.0/4", lab: "Reserved (former Class E network)", c: "#85144b" },
     { ipr: "255.255.255.255/32", lab: "Broadcast", c: "#F012BE" }
 ];
-for (var _i = 0, arrCIDR_1 = arrCIDR; _i < arrCIDR_1.length; _i++) {
-    var myRange = arrCIDR_1[_i];
-    try {
-        poligonizify(myRange.ipr, myRange.lab, myRange.c);
-    }
-    catch (e) {
-        console.log(myRange.ipr + ": " + e);
-        throw e;
+try {
+    for (var arrCIDR_1 = __values(arrCIDR), arrCIDR_1_1 = arrCIDR_1.next(); !arrCIDR_1_1.done; arrCIDR_1_1 = arrCIDR_1.next()) {
+        var myRange = arrCIDR_1_1.value;
+        try {
+            poligonizify(myRange.ipr, myRange.lab, myRange.c);
+        }
+        catch (e) {
+            console.log(myRange.ipr + ": " + e);
+            throw e;
+        }
     }
 }
+catch (e_1_1) { e_1 = { error: e_1_1 }; }
+finally {
+    try {
+        if (arrCIDR_1_1 && !arrCIDR_1_1.done && (_a = arrCIDR_1.return)) _a.call(arrCIDR_1);
+    }
+    finally { if (e_1) throw e_1.error; }
+}
+var e_1, _a;
 //# sourceMappingURL=main.js.map

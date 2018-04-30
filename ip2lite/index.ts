@@ -101,3 +101,4 @@ function loadData() {
 
 export {ip2lite};
 export {loadData};
+export {IDataIP};

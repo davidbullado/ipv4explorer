@@ -67,14 +67,26 @@ var stringToColour = function(str) {
     };
 }
 
-function tileConstruct (ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
+// function tileConstruct (ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
+function tileConstruct (ip, getXYTile, compareTo, coord, colorRect) {
 
   var fillRect ;
 
+  let whois: string = "";
+  let designation: string = "";
+  let date: string = "";
+  let currentTile;
+
+
+  if (getXYTile) {
+    currentTile = getXYTile(coord);
+    whois       = currentTile.whois;
+    designation = currentTile.desc;
+    date        = currentTile.date;
+  }
+
   if (colorRect){
-    
     fillRect = colorRect;
-    
   } else {
     fillRect = getColorFromWhois(whois,designation);
   }
@@ -102,11 +114,14 @@ function tileConstruct (ip, whois, designation, date, getXYTile, compareTo, row,
 
     for (var y=-1; y <= 1 ; y++){
         for (var x=-1; x <= 1; x++){
-            var neighborTile = getXYTile({x: row.x+x, y: row.y+y});
+            if (y===0 && x===0) {
+              continue;
+            }
+            var neighborTile = getXYTile({x: currentTile.x+x, y: currentTile.y+y});
             // store neighbors reference
             myNeighbors[y+1][x+1] = neighborTile;
             // If neighbor shares the same whois
-            if (neighborTile && compareTo (neighborTile, row)){
+            if (neighborTile && compareTo (neighborTile, currentTile)){
                 myNeighborsEquals[y+1][x+1] = true; 
             }
         }
@@ -261,10 +276,10 @@ function tileConstruct (ip, whois, designation, date, getXYTile, compareTo, row,
   <rect x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" 
           rx="15" ry="15" fill="${fillRect}" />
   <text text-anchor="middle" x="128" y="64" font-size="22"  >
-    ${ip}
+    ${whois}
   </text>
   <text text-anchor="middle" x="128" y="132" font-size="25" >
-    ${whois}
+    ${ip}
   </text>
   <text text-anchor="middle" x="128" y="190" font-size="13" >
   <![CDATA[${designation}]]>
