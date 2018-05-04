@@ -66,6 +66,6 @@ result.forEach(function(row) {
     
     var filename = `../tiles_svg/4/${row.x}/${row.y}`;
   
-    fs.writeFileSync(filename,tileConstruct(row.ip,row.whois,row.designation,row.date,getXYTile,compareTo, row, null));
+   // fs.writeFileSync(filename,tileConstruct(row.ip,row.whois,row.designation,row.date,getXYTile,compareTo, row, null));
 
   });

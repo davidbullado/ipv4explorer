@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var d3 = require("d3-dsv");
 var fs = require("fs");
-var tilesvg_1 = require("./tilesvg");
 var ipv4_1 = require("../ipv4");
 var buf = fs.readFileSync("./ipv4-address-space.csv");
 var processRow = function (row) {
@@ -54,6 +53,6 @@ result.forEach(function (row) {
         fs.mkdirSync("../tiles_svg/4/" + row.x);
     }
     var filename = "../tiles_svg/4/" + row.x + "/" + row.y;
-    fs.writeFileSync(filename, tilesvg_1.tileConstruct(row.ip, row.whois, row.designation, row.date, getXYTile, compareTo, row, null));
+    // fs.writeFileSync(filename,tileConstruct(row.ip,row.whois,row.designation,row.date,getXYTile,compareTo, row, null));
 });
 //# sourceMappingURL=build-tiles.js.map

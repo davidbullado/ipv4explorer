@@ -67,8 +67,8 @@ var stringToColour = function(str) {
     };
 }
 
-// function tileConstruct (ip, whois, designation, date, getXYTile, compareTo, row, colorRect) {
-function tileConstruct (ip, getXYTile, compareTo, coord, colorRect) {
+
+function tileConstructSVG (getXYTile, compareTo, coord, colorRect) {
 
   var fillRect ;
 
@@ -76,7 +76,6 @@ function tileConstruct (ip, getXYTile, compareTo, coord, colorRect) {
   let designation: string = "";
   let date: string = "";
   let currentTile;
-
 
   if (getXYTile) {
     currentTile = getXYTile(coord);
@@ -117,7 +116,7 @@ function tileConstruct (ip, getXYTile, compareTo, coord, colorRect) {
             if (y===0 && x===0) {
               continue;
             }
-            var neighborTile = getXYTile({x: currentTile.x+x, y: currentTile.y+y});
+            var neighborTile = getXYTile({x: currentTile.x+x, y: currentTile.y+y, z: currentTile.z});
             // store neighbors reference
             myNeighbors[y+1][x+1] = neighborTile;
             // If neighbor shares the same whois
@@ -253,13 +252,7 @@ function tileConstruct (ip, getXYTile, compareTo, coord, colorRect) {
     }
   }
 
-  return `<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-
-<svg width="256px" height="256px" version="1.1"
-     viewBox="0 0 256 256" preserveAspectRatio="none"
-     xmlns="http://www.w3.org/2000/svg">
+  return `
   <defs>
     <style type="text/css">
     <![CDATA[
@@ -279,7 +272,7 @@ function tileConstruct (ip, getXYTile, compareTo, coord, colorRect) {
     ${whois}
   </text>
   <text text-anchor="middle" x="128" y="132" font-size="25" >
-    ${ip}
+    ${currentTile.ip}
   </text>
   <text text-anchor="middle" x="128" y="190" font-size="13" >
   <![CDATA[${designation}]]>
@@ -287,9 +280,97 @@ function tileConstruct (ip, getXYTile, compareTo, coord, colorRect) {
   <text text-anchor="end" x="240" y="240" font-size="16" >
     ${date}
   </text>
-  <path stroke-dasharray="4,4" d="M255 0 l0 255" stroke="white" fill="none" />
-  <path stroke-dasharray="4,4" d="M0 255 l255 0" stroke="white" fill="none" />
+  <path stroke-dasharray="4,4" d="M255 10 l0 235" stroke="white" fill="none" />
+  <path stroke-dasharray="4,4" d="M10 255 l235 0" stroke="white" fill="none" />
+`;
+}
+
+function tileConstruct (getXYTile, compareTo, isTileInfoMoreThanOne, coord, colorRect) {
+  
+  let svgcontent ;
+
+  if (isTileInfoMoreThanOne(coord)) {
+    svgcontent = tileConstructSubSVG (getXYTile, compareTo, isTileInfoMoreThanOne, coord, colorRect, 2);
+  } else {
+    svgcontent = tileConstructSVG (getXYTile, compareTo, coord, colorRect);
+  }
+
+  return `<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+
+<svg width="256px" height="256px" version="1.1"
+     viewBox="0 0 256 256" preserveAspectRatio="none"
+     xmlns="http://www.w3.org/2000/svg">
+  ${svgcontent}
 </svg>
 `;
 }
+
+function tileConstructSubSVG (getXYTile, compareTo, isTileInfoMoreThanOne, coord, colorRect, rec) {
+  const nx = coord.x * 2;
+  const ny = coord.y * 2;
+  const nz = coord.z + 1;
+
+  let topLeft    ;
+  let topRight   ;
+  let bottomRight;
+  let bottomLeft ;
+  
+  const coordTopLeft = {x: nx,     y: ny,     z: nz} ;
+
+  if (rec > 0 && isTileInfoMoreThanOne(coordTopLeft)) {
+    topLeft     = tileConstructSubSVG (getXYTile, compareTo, isTileInfoMoreThanOne, coordTopLeft, colorRect, rec-1);
+  } else {
+    topLeft     = tileConstructSVG (getXYTile, compareTo, coordTopLeft, colorRect);
+  }
+
+  const coordTopRight = {x: nx + 1, y: ny,     z: nz} ;
+
+  if (rec > 0 && isTileInfoMoreThanOne(coordTopRight)) {
+    topRight     = tileConstructSubSVG (getXYTile, compareTo, isTileInfoMoreThanOne, coordTopRight, colorRect, rec-1);
+  } else {
+    topRight     = tileConstructSVG (getXYTile, compareTo, coordTopRight, colorRect);
+  }
+
+  const coordBottomRight = {x: nx + 1, y: ny + 1, z: nz} ;
+
+  if (rec > 0 && isTileInfoMoreThanOne(coordBottomRight)) {
+    bottomRight     = tileConstructSubSVG (getXYTile, compareTo, isTileInfoMoreThanOne, coordBottomRight, colorRect, rec-1);
+  } else {
+    bottomRight     = tileConstructSVG (getXYTile, compareTo, coordBottomRight, colorRect);
+  }
+
+  const coordBottomLeft = {x: nx,     y: ny + 1, z: nz} ;
+
+  if (rec > 0 && isTileInfoMoreThanOne(coordBottomLeft)) {
+    bottomLeft     = tileConstructSubSVG (getXYTile, compareTo, isTileInfoMoreThanOne, coordBottomLeft, colorRect, rec-1);
+  } else {
+    bottomLeft     = tileConstructSVG (getXYTile, compareTo, coordBottomLeft, colorRect);
+  }
+
+  return `
+  <svg width="256px" height="256px" viewBox="0 0 512 512" preserveAspectRatio="none">
+    <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
+      ${topLeft}
+    </svg>
+  </svg>
+  <svg width="256px" height="256px" viewBox="-256 0 512 512" preserveAspectRatio="none">
+    <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
+      ${topRight}
+    </svg>
+  </svg>
+  <svg width="256px" height="256px" viewBox="-256 -256 512 512" preserveAspectRatio="none">
+    <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
+      ${bottomRight}
+    </svg>
+  </svg>
+  <svg width="256px" height="256px" viewBox="0 -256 512 512" preserveAspectRatio="none">
+    <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
+      ${bottomLeft}
+    </svg>
+  </svg>
+`;
+}
+
 export { tileConstruct }

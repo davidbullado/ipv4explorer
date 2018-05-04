@@ -61,6 +61,7 @@ function castLPoint(p: IPoint): L.Point {
     return point;
 }
 
+/*
 function poligonizify(ipCIDR: string, label: string, color: string):void {
 
     const twopart: string[] = ipCIDR.split("/");
@@ -96,7 +97,7 @@ function poligonizify(ipCIDR: string, label: string, color: string):void {
         getLatLng(mymap, ipBotRight.pPoint),
         getLatLng(mymap, ipTopRight.pPoint)
     ], { color: color,fillColor: color}).addTo(mymap).bindPopup(label+"<br/>"+ipTopLeft.toString() + " to " + ipEnd.toString());
-}
+}*/
 
 var popup: L.Popup = L.popup();
 
@@ -153,6 +154,7 @@ L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
     .bindPopup("You are here.<br/>" + myip).openPopup();
 
 
+/*
 const arrCIDR: {
     ipr: string;
     lab: string;
@@ -185,3 +187,4 @@ for (let myRange of arrCIDR) {
     }
 }
 
+*/
