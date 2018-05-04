@@ -1,7 +1,8 @@
 var path = require('path');
 
 module.exports = {
-  entry: './src/javascripts/main.ts',
+  entry: './client/javascripts/app.ts',
+  mode: 'development',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
@@ -9,10 +10,10 @@ module.exports = {
     // so VSCode can match the source file.
     devtoolModuleFilenameTemplate: '[absolute-resource-path]'
   },
-    resolve: {
-        // Add '.ts' and '.tsx' as a resolvable extension.
-        extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
-    },
+  resolve: {
+    // Add '.ts' and '.tsx' as a resolvable extension.
+    extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
+  },
   module: {
     // your modules...
     rules: [{
@@ -20,6 +21,17 @@ module.exports = {
       loaders: ['html-loader', 'pug-html-loader']
     },{
       test: /\.tsx?$/, loader: "ts-loader"
+    },{
+      test: /\.css$/,
+      loaders: [
+        'style-loader',
+        'css-loader'
+      ]
+    },{
+      test: /\.(svg|gif|png|eot|woff|ttf)$/,
+      loaders: [
+        'url-loader'
+      ]
     }]
   },
   devtool: 'cheap-source-map'
