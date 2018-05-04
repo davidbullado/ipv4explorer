@@ -1,6 +1,6 @@
 import { csvParseRows, csvParse } from "d3-dsv";
 import fetch from "node-fetch";
-import IPv4 from "../ipv4/index";
+import { IPv4 } from "../ipv4/index";
 import express = require('express');
 import request from 'sync-request';
 

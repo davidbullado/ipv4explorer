@@ -89,7 +89,7 @@ function poligonizify(ipCIDR: string, label: string, color: string):void {
 var popup = L.popup();
 function onMapClick(e) {
     var mypoint = mymap.project(e.latlng, mymap.getZoom());
-    var myip = index_1.default.newIPv4FromPoint(getAbsolutePoint(mymap, e.latlng));
+    var myip = index_1.IPv4.newIPv4FromPoint(getAbsolutePoint(mymap, e.latlng));
     /* popup
          .setLatLng(e.latlng)
          .setContent(myip.toString())
@@ -123,7 +123,7 @@ function query(ip, callback) {
     request.send();
 }
 mymap.on("click", onMapClick);
-var myip = index_1.default.newIPv4FromString(document.getElementById("ip").innerText);
+var myip = index_1.IPv4.newIPv4FromString(document.getElementById("ip").innerText);
 L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
     .bindPopup("You are here.<br/>" + myip).openPopup();
 /*

@@ -21,7 +21,7 @@ var processRow = function (row) {
         whois = resWhois[1].toUpperCase();
     }
     // we want to convert ip into coordinates:
-    var myip = ipv4_1.default.newIPv4FromString(ip);
+    var myip = ipv4_1.IPv4.newIPv4FromString(ip);
     // we have to scale to zoom 4, i.e. divide by 2^12.
     // (because point.x E [0, 2^16], and we want x E [0, 2^4])
     var x = myip.pPoint.x / 0x1000; // 0x1000 = 2^12

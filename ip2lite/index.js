@@ -24,7 +24,7 @@ var processRow = function (row) {
         whois = resWhois[1].toUpperCase();
     }
     // we want to convert ip into coordinates:
-    var myip = index_1.default.newIPv4FromString(ip);
+    var myip = index_1.IPv4.newIPv4FromString(ip);
     /*// we have to scale to zoom 4, i.e. divide by 2^12.
     // (because point.x E [0, 2^16], and we want x E [0, 2^4])
     var x = myip.point.x / 0x1000; // 0x1000 = 2^12
@@ -52,8 +52,8 @@ function loadData() {
     console.log("Parse csv...");
     ip2lite.ipArray = d3_dsv_1.csvParseRows(body, function (row) {
         var ipRes = {
-            ipRangeStart: new index_1.default(Number(row[0])),
-            ipRangeEnd: new index_1.default(Number(row[1])),
+            ipRangeStart: new index_1.IPv4(Number(row[0])),
+            ipRangeEnd: new index_1.IPv4(Number(row[1])),
             countryCode: row[2],
             countryLabel: row[3]
         };

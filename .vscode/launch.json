@@ -6,17 +6,23 @@
     "configurations": [
 
         {
+            "name": "Launch Server",
             "type": "node",
             "request": "launch",
-            "name": "Launch Server",
-            "program": "${workspaceFolder}/app.js"
+            "cwd": "${workspaceFolder}",
+            "program": "${workspaceFolder}/app.js",
+            "outFiles": [
+                "${workspaceRoot}/dist/bundle.js"
+              ],
+            "sourceMaps": true
         },
         {
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome",
             "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}"        },
+            "webRoot": "${workspaceFolder}",  
+        },
         {
             "type": "chrome",
             "request": "attach",

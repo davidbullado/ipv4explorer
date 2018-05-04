@@ -4,7 +4,10 @@ module.exports = {
   entry: './src/javascripts/main.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    // Bundle absolute resource paths in the source-map,
+    // so VSCode can match the source file.
+    devtoolModuleFilenameTemplate: '[absolute-resource-path]'
   },
     resolve: {
         // Add '.ts' and '.tsx' as a resolvable extension.
@@ -17,8 +20,7 @@ module.exports = {
       loaders: ['html-loader', 'pug-html-loader']
     },{
       test: /\.tsx?$/, loader: "ts-loader"
-      
     }]
   },
-  devtool: 'source-map'
+  devtool: 'cheap-source-map'
 };

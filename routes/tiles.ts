@@ -8,7 +8,7 @@ import fs = require("fs");
 import path = require("path");
 import { tileConstruct } from "../build-tiles/tilesvg";
 import { IDataIP, ip2lite } from "../ip2lite";
-import IPv4 from "../ipv4/index";
+import { IPv4 } from "../ipv4/index";
 import { objectTypeAnnotation } from "babel-types";
 
 const router: express.Router = express.Router();

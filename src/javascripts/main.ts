@@ -1,4 +1,4 @@
-import IPv4 from "../../ipv4/index";
+import { IPv4 } from "../../ipv4/index";
 import * as L from "leaflet";
 
 let mymap: L.Map = L.map("mapid").setView([0, 0], 1);/*.setMaxBounds([

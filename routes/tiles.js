@@ -43,7 +43,7 @@ function getCountries(ipValue, zoom) {
     var res;
     var ipEnd;
     // get last ip of the block given zoom
-    ipEnd = (new index_1.default(ipValue)).getLastIPMask(zoom * 2);
+    ipEnd = (new index_1.IPv4(ipValue)).getLastIPMask(zoom * 2);
     var m = aggregateCountryRangeByLabel(getCountriesRange(ipValue, ipEnd.pVal));
     if (m.size === 1) {
         // get the full country name
@@ -61,7 +61,7 @@ function moreThanOneCountry(ipValue, zoom) {
     var moreThanOne = false;
     var ipEnd;
     // get last ip of the block given zoom
-    ipEnd = (new index_1.default(ipValue)).getLastIPMask(zoom * 2);
+    ipEnd = (new index_1.IPv4(ipValue)).getLastIPMask(zoom * 2);
     var myRange = getCountriesRange(ipValue, ipEnd.pVal);
     if (myRange.length > 1) {
         var myVal = myRange[0].countryCode;
@@ -82,7 +82,7 @@ function getIPFromXYZ(x, y, z) {
         ipval += m * Math.pow(2, n * (32 - ((z - i + 1) << 1)));
     }
     var strip = (ipval >> 24 & 255) + "." + (ipval >> 16 & 255) + "." + (ipval >> 8 & 255) + "." + (ipval & 255);
-    var myIP = new index_1.default(ipval);
+    var myIP = new index_1.IPv4(ipval);
     return myIP;
 }
 function buildTileSVG(x, y, z) {

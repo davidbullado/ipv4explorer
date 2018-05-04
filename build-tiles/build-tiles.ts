@@ -3,7 +3,7 @@ import request = require('sync-request');
 import d3 = require("d3-dsv");
 import fs = require("fs");
 import { tileConstruct } from "./tilesvg";
-import IPv4 from "../ipv4";
+import {IPv4} from "../ipv4";
 
 var buf = fs.readFileSync("./ipv4-address-space.csv");
 
