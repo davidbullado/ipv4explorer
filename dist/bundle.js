@@ -431,7 +431,7 @@ exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader
 
 
 // module
-exports.push([module.i, "html, body {\r\n    margin: 0;\r\n    padding: 0;\r\n    width: 100%;\r\n    height: 100%;\r\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\r\n}\r\n\r\na {\r\n    color: #00B7FF;\r\n}\r\n\r\n#mapid {\r\n\twidth: 100%;\r\n\theight: 100%;\r\n\tbackground-color: #fdfdfd;\r\n\tposition: static !important;\r\n}\r\n\r\n#ip {\r\n    display: none;\r\n}\r\n\r\n.whois {\r\n    max-height:200px;\r\n    white-space: pre;\r\n    overflow:scroll;\r\n}", ""]);
+exports.push([module.i, "html, body {\r\n    margin: 0;\r\n    padding: 0;\r\n    width: 100%;\r\n    height: 100%;\r\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\r\n    background-color: black;\r\n}\r\n\r\na {\r\n    color: #00B7FF;\r\n}\r\n\r\n#mapid {\r\n\twidth: 100%;\r\n\theight: 100%;\r\n\tbackground-color: black;\r\n\tposition: static !important;\r\n}\r\n\r\n#ip {\r\n    display: none;\r\n}\r\n\r\n.whois {\r\n    max-height:200px;\r\n    white-space: pre;\r\n    overflow:scroll;\r\n}", ""]);
 
 // exports
 

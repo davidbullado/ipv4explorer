@@ -1,6 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-function getColorFromWhois(whois, designation) {
+var index_1 = require("../ipv4/index");
+var ip2lite_1 = require("../ip2lite");
+var d3_array_1 = require("d3-array");
+function getColorFromWhois(_a) {
+    var whois = _a.whois, designation = _a.designation;
     if (!designation || designation === "") {
         designation = "void";
     }
@@ -58,12 +62,150 @@ var stringToColour = function (str) {
         b: (hash >> 16) & 0xff
     };
 };
-function tileConstructSVG(getXYTile, compareTo, coord, colorRect) {
+// ip2lite:
+function filterBetween(d) {
+    return d.ipRangeStart.pVal <= this.value && this.value <= d.ipRangeEnd.pVal;
+}
+// ip2lite: strictly between
+function filter(d) {
+    return (d.ipRangeStart.pVal <= this.ipStart && this.ipEnd <= d.ipRangeEnd.pVal) ||
+        (this.ipStart <= d.ipRangeStart.pVal && d.ipRangeEnd.pVal <= this.ipEnd) ||
+        d.ipRangeStart.pVal <= this.ipStart && this.ipStart <= d.ipRangeEnd.pVal ||
+        d.ipRangeStart.pVal <= this.ipEnd && this.ipEnd <= d.ipRangeEnd.pVal;
+}
+/**
+ * Get a slice of ip/country array
+ * @param ipStart first ip of a block
+ * @param ipEnd last ip of a block
+ */
+function getCountriesRange(ipStart, ipEnd) {
+    // instead of doing an array.filter, which is time consuming,
+    // we use bisect on an index.
+    var idLo = d3_array_1.bisectLeft(ip2lite_1.ip2lite.ipArrayIdx, ipStart);
+    var idHi = d3_array_1.bisectLeft(ip2lite_1.ip2lite.ipArrayIdx, ipEnd);
+    var myRange = ip2lite_1.ip2lite.ipArray.slice(idLo, idHi + 1);
+    return myRange;
+}
+function aggregateCountryRangeByLabel(myRange) {
+    var countries = new Map();
+    myRange.forEach(function (r) {
+        countries.set(r.countryCode, r.countryLabel);
+    });
+    return countries;
+}
+function getCountries(ipValue, zoom) {
+    var res;
+    var ipEnd;
+    // get last ip of the block given zoom
+    ipEnd = (new index_1.IPv4(ipValue)).getLastIPMask(zoom * 2);
+    var m = aggregateCountryRangeByLabel(getCountriesRange(ipValue, ipEnd.pVal));
+    if (m.size === 1) {
+        // get the full country name
+        res = m.values().next().value;
+    }
+    else {
+        // get the country codes
+        var arrCountryCode = Array.from(m.keys());
+        // concat them into csv with a trailing ... if more than 4 countries.
+        res = arrCountryCode.slice(0, 4).join(", ") + (m.size > 4 ? ", " + arrCountryCode[4] + ", ..." : "");
+    }
+    return res;
+}
+function moreThanOneCountry(ipValue, zoom) {
+    var moreThanOne = false;
+    var ipEnd;
+    // get last ip of the block given zoom
+    ipEnd = (new index_1.IPv4(ipValue)).getLastIPMask(zoom * 2);
+    var myRange = getCountriesRange(ipValue, ipEnd.pVal);
+    if (myRange.length > 1) {
+        var myVal = myRange[0].countryCode;
+        for (var i = 0; i < myRange.length && !moreThanOne; i++) {
+            moreThanOne = myVal != myRange[i].countryCode;
+        }
+    }
+    return moreThanOne;
+}
+var getTileInfo = function (ipTile, point) {
+    if (ipTile) {
+        var strIP = ipTile.toString();
+        // single ip scale
+        if (point.z < 16) {
+            strIP += "/" + (point.z * 2) + "\n";
+        }
+        // list all Regional Internet Registries where my ip belong
+        var resWhois = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
+        var res = { x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP };
+        if (point.z > 5) {
+            res.desc = getCountries(ipTile.pVal, point.z);
+            res.date = "";
+        }
+        else {
+            //res.desc = resWhois[0].designation ;
+            res.date = resWhois[0].date;
+            var mapRIR_1 = new Map();
+            resWhois.forEach(function (r) {
+                mapRIR_1.set(r.designation, r.date);
+            });
+            // get the designation
+            var arrRIRdes = Array.from(mapRIR_1.keys());
+            // concat them into csv with a trailing ... if more than 4 designation.
+            res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR_1.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
+            if (mapRIR_1.size > 1) {
+                res.date = "";
+            }
+        }
+        return res;
+    }
+    else {
+        return null;
+    }
+};
+var isTileInfoMoreThanOne = function (point) {
+    var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
+    if (ipTile) {
+        if (point.z > 5) {
+            return moreThanOneCountry(ipTile.pVal, point.z);
+        }
+        else {
+            var resWhois = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
+            var moreThanOne = false;
+            if (resWhois.length > 1) {
+                var myVal = resWhois[0].designation;
+                for (var i = 0; i < resWhois.length && !moreThanOne; i++) {
+                    moreThanOne = myVal != resWhois[i].designation;
+                }
+            }
+            return moreThanOne;
+        }
+    }
+    else {
+        return false;
+    }
+};
+function getXYTile(point) {
+    var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
+    return getTileInfo(ipTile, point);
+}
+;
+function compareTiles(tile1, tile2) {
+    return tile1.desc === tile2.desc && tile1.whois === tile2.whois;
+}
+;
+/**
+ *
+ * @param getXYTile
+ * @param compareTo
+ * @param coord
+ * @param colorRect
+ * @param z_level Information about z depth. When multiple sub tiles are computed, indicate at which level there are. z -> 0 indicates the tile will be very tiny. So it is not necessary to compute many details
+ */
+function tileConstructSVG(coord, colorRect, z_level) {
     var fillRect;
     var whois = "";
     var designation = "";
     var date = "";
     var currentTile;
+    var stroke = "";
     if (getXYTile) {
         currentTile = getXYTile(coord);
         whois = currentTile.whois;
@@ -74,7 +216,7 @@ function tileConstructSVG(getXYTile, compareTo, coord, colorRect) {
         fillRect = colorRect;
     }
     else {
-        fillRect = getColorFromWhois(whois, designation);
+        fillRect = getColorFromWhois({ whois: whois, designation: designation });
     }
     var join = "";
     var rect = {
@@ -83,7 +225,7 @@ function tileConstructSVG(getXYTile, compareTo, coord, colorRect) {
         width: 250,
         height: 250
     };
-    if (getXYTile && compareTo) {
+    if (z_level > 0 && getXYTile) {
         var myNeighbors = [
             [null, null, null],
             [null, null, null],
@@ -103,7 +245,7 @@ function tileConstructSVG(getXYTile, compareTo, coord, colorRect) {
                 // store neighbors reference
                 myNeighbors[y + 1][x + 1] = neighborTile;
                 // If neighbor shares the same whois
-                if (neighborTile && compareTo(neighborTile, currentTile)) {
+                if (neighborTile && compareTiles(neighborTile, currentTile)) {
                     myNeighborsEquals[y + 1][x + 1] = true;
                 }
             }
@@ -113,26 +255,27 @@ function tileConstructSVG(getXYTile, compareTo, coord, colorRect) {
         var nbBot = myNeighbors[2][1];
         var nbLeft = myNeighbors[1][0];
         var nbEqualsBtwThem = {
-            topRigth: "",
-            rigthBot: "",
-            botLeft: "",
-            leftTop: ""
+            topRigth: null,
+            botRight: null,
+            botLeft: null,
+            topLeft: null
         };
-        if (nbTop && nbRight && compareTo(nbTop, nbRight)) {
-            nbEqualsBtwThem.topRigth = nbTop.whois;
+        if (nbTop && nbRight && compareTiles(nbTop, nbRight)) {
+            nbEqualsBtwThem.topRigth = { whois: nbTop.whois, designation: nbTop.desc };
         }
-        if (nbRight && nbBot && compareTo(nbRight, nbBot)) {
-            nbEqualsBtwThem.rigthBot = nbRight.whois;
+        if (nbRight && nbBot && compareTiles(nbRight, nbBot)) {
+            nbEqualsBtwThem.botRight = { whois: nbRight.whois, designation: nbRight.desc };
         }
-        if (nbBot && nbLeft && compareTo(nbBot, nbLeft)) {
-            nbEqualsBtwThem.botLeft = nbBot.whois;
+        if (nbBot && nbLeft && compareTiles(nbBot, nbLeft)) {
+            nbEqualsBtwThem.botLeft = { whois: nbBot.whois, designation: nbBot.desc };
         }
-        if (nbLeft && nbTop && compareTo(nbLeft, nbTop)) {
-            nbEqualsBtwThem.leftTop = nbLeft.whois;
+        if (nbLeft && nbTop && compareTiles(nbLeft, nbTop)) {
+            nbEqualsBtwThem.topLeft = { whois: nbLeft.whois, designation: nbLeft.desc };
         }
         // right
         if (myNeighborsEquals[1][2]) {
             rect.width += 15;
+            stroke += "\n      <line stroke-dasharray=\"4,4\" x1=\"255\" y1=\"10\" x2=\"255\" y2=\"245\" />\n      ";
         }
         // left
         if (myNeighborsEquals[1][0]) {
@@ -147,65 +290,73 @@ function tileConstructSVG(getXYTile, compareTo, coord, colorRect) {
         // bottom
         if (myNeighborsEquals[2][1]) {
             rect.height += 15;
+            stroke += "\n      <line stroke-dasharray=\"4,4\" x1=\"10\" y1=\"255\" x2=\"245\" y2=\"255\" />\n      ";
         }
         // left top
         if (myNeighborsEquals[0][0]) {
-            join += "\n      <rect x=\"0\" y=\"0\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"-18\" cy=\"18\" r=\"21\" fill=\"white\" />\n      <circle cx=\"18\" cy=\"-18\" r=\"21\" fill=\"white\" />\n      ";
+            join += "\n      <rect x=\"0\" y=\"0\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"-18\" cy=\"18\" r=\"21\" />\n      <circle cx=\"18\" cy=\"-18\" r=\"21\" />\n      ";
         }
         // right bottom
         if (myNeighborsEquals[2][2]) {
-            join += "\n      <rect x=\"238\" y=\"238\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"238\" cy=\"274\" r=\"21\" fill=\"white\" />\n      <circle cx=\"274\" cy=\"238\" r=\"21\" fill=\"white\" />\n      ";
+            join += "\n      <rect x=\"238\" y=\"238\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"238\" cy=\"274\" r=\"21\" />\n      <circle cx=\"274\" cy=\"238\" r=\"21\" />\n      ";
         }
         // if current tile equals its top right neighbor,
         if (myNeighborsEquals[0][2]) {
-            join += "\n      <rect x=\"238\" y=\"0\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"238\" cy=\"-18\" r=\"21\" fill=\"white\" />\n      <circle cx=\"274\" cy=\"18\" r=\"21\" fill=\"white\" />\n      ";
+            join += "\n      <rect x=\"238\" y=\"0\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"238\" cy=\"-18\" r=\"21\" />\n      <circle cx=\"274\" cy=\"18\" r=\"21\" />\n      ";
         }
         // bottom left
         if (myNeighborsEquals[2][0]) {
-            join += "\n      <rect x=\"0\" y=\"238\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"-18\" cy=\"238\" r=\"21\" fill=\"white\" />\n      <circle cx=\"18\" cy=\"274\" r=\"21\" fill=\"white\" />\n      ";
+            join += "\n      <rect x=\"0\" y=\"238\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"-18\" cy=\"238\" r=\"21\" />\n      <circle cx=\"18\" cy=\"274\" r=\"21\" />\n      ";
         }
         // Left top
-        if (!myNeighborsEquals[0][0] && nbEqualsBtwThem.leftTop.length > 0) {
-            join += "\n      <polygon points=\"0,0 6,0 0,6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.leftTop, designation) + "\" />\n      ";
+        if (!myNeighborsEquals[0][0] && nbEqualsBtwThem.topLeft) {
+            join += "\n      <polygon points=\"0,0 6,0 0,6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topLeft) + "\" />\n      ";
         }
         // Right bottom
-        if (!myNeighborsEquals[2][2] && nbEqualsBtwThem.rigthBot.length > 0) {
-            join += "\n      <polygon points=\"256,256 250,256 256,250\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.rigthBot, designation) + "\" />\n      ";
+        if (!myNeighborsEquals[2][2] && nbEqualsBtwThem.botRight) {
+            join += "\n      <polygon points=\"256,256 250,256 256,250\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botRight) + "\" />\n      ";
         }
+        // . . .          . . .
+        // . = . ?   &&   = . . ?
+        // = . .          . = .
         // cross : patch with triangle
-        if (myNeighborsEquals[2][0] && nbEqualsBtwThem.botLeft.length > 0) {
-            join += "\n      <polygon points=\"0,256 0,250 6,256\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botLeft, designation) + "\" />\n      ";
+        if (myNeighborsEquals[2][0] && nbEqualsBtwThem.botLeft) {
+            join += "\n      <polygon points=\"0,256 0,250 6,256\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botLeft) + "\" />\n      ";
         }
         else {
-            if (nbEqualsBtwThem.botLeft.length > 0) {
-                join += "\n        <rect x=\"0\" y=\"250\" width=\"6\" height=\"6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botLeft, designation) + "\" />\n        <circle cx=\"18\" cy=\"238\" r=\"21\" fill=\"white\" />\n        ";
+            //  . . .
+            //  = . . ?
+            //  . = .
+            // Trace a curve
+            if (nbEqualsBtwThem.botLeft) {
+                join += "\n        <rect x=\"0\" y=\"250\" width=\"6\" height=\"6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botLeft) + "\" />\n        <circle cx=\"18\" cy=\"238\" r=\"21\" />\n        ";
             }
         }
         // cross : patch with triangle
-        if (myNeighborsEquals[0][2] && nbEqualsBtwThem.topRigth.length > 0) {
-            join += "\n      <polygon points=\"256,0 250,0 256,6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topRigth, designation) + "\" />\n      ";
+        if (myNeighborsEquals[0][2] && nbEqualsBtwThem.topRigth) {
+            join += "\n      <polygon points=\"256,0 250,0 256,6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topRigth) + "\" />\n      ";
         }
         else {
             // otherwise, top and rigth are equal
-            if (nbEqualsBtwThem.topRigth.length > 0) {
-                join += "\n        <rect x=\"250\" y=\"0\" width=\"6\" height=\"6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topRigth, designation) + "\" />\n        <circle cx=\"238\" cy=\"18\" r=\"21\" fill=\"white\" />\n        ";
+            if (nbEqualsBtwThem.topRigth) {
+                join += "\n        <rect x=\"250\" y=\"0\" width=\"6\" height=\"6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topRigth) + "\" />\n        <circle cx=\"238\" cy=\"18\" r=\"21\" />\n        ";
             }
         }
     }
-    return "\n  <defs>\n    <style type=\"text/css\">\n    <![CDATA[\n    text {\n      font-family: \"Open Sans\",arial,x-locale-body,sans-serif;\n      fill: #555;\n    }\n    ]]>\n  </style>\n  </defs>\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\"  >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" >\n    " + currentTile.ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"190\" font-size=\"13\" >\n  <![CDATA[" + designation + "]]>\n  </text>\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" >\n    " + date + "\n  </text>\n  <path stroke-dasharray=\"4,4\" d=\"M255 10 l0 235\" stroke=\"white\" fill=\"none\" />\n  <path stroke-dasharray=\"4,4\" d=\"M10 255 l235 0\" stroke=\"white\" fill=\"none\" />\n";
+    return "\n  <defs>\n    <style type=\"text/css\">\n    <![CDATA[\n    text {\n      font-family: \"Open Sans\",arial,x-locale-body,sans-serif;\n      fill: #555;\n    }\n    line{\n      stroke: black;\n      stroke-width: 1;\n    }\n    circle{\n      fill: black;\n    }\n    ]]>\n  </style>\n  </defs>\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\"  >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" >\n    " + currentTile.ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"190\" font-size=\"13\" >\n  <![CDATA[" + designation + "]]>\n  </text>\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" >\n    " + date + "\n  </text>\n  " + stroke + "\n  \n";
 }
-function tileConstruct(getXYTile, compareTo, isTileInfoMoreThanOne, coord, colorRect) {
+function tileConstruct(coord, colorRect) {
     var svgcontent;
     if (isTileInfoMoreThanOne(coord)) {
-        svgcontent = tileConstructSubSVG(getXYTile, compareTo, isTileInfoMoreThanOne, coord, colorRect, 2);
+        svgcontent = tileConstructSubSVG(coord, colorRect, 2);
     }
     else {
-        svgcontent = tileConstructSVG(getXYTile, compareTo, coord, colorRect);
+        svgcontent = tileConstructSVG(coord, colorRect, 2);
     }
-    return "<?xml version=\"1.0\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \n  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n\n<svg width=\"256px\" height=\"256px\" version=\"1.1\"\n     viewBox=\"0 0 256 256\" preserveAspectRatio=\"none\"\n     xmlns=\"http://www.w3.org/2000/svg\">\n  " + svgcontent + "\n</svg>\n";
+    return "<?xml version=\"1.0\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \n  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n\n<svg width=\"256px\" height=\"256px\" version=\"1.1\"\n     viewBox=\"0 0 256 256\" preserveAspectRatio=\"none\"\n     xmlns=\"http://www.w3.org/2000/svg\" shape-rendering=\"geometricPrecision\">\n  " + svgcontent + "\n</svg>\n";
 }
 exports.tileConstruct = tileConstruct;
-function tileConstructSubSVG(getXYTile, compareTo, isTileInfoMoreThanOne, coord, colorRect, rec) {
+function tileConstructSubSVG(coord, colorRect, rec) {
     var nx = coord.x * 2;
     var ny = coord.y * 2;
     var nz = coord.z + 1;
@@ -215,31 +366,31 @@ function tileConstructSubSVG(getXYTile, compareTo, isTileInfoMoreThanOne, coord,
     var bottomLeft;
     var coordTopLeft = { x: nx, y: ny, z: nz };
     if (rec > 0 && isTileInfoMoreThanOne(coordTopLeft)) {
-        topLeft = tileConstructSubSVG(getXYTile, compareTo, isTileInfoMoreThanOne, coordTopLeft, colorRect, rec - 1);
+        topLeft = tileConstructSubSVG(coordTopLeft, colorRect, rec - 1);
     }
     else {
-        topLeft = tileConstructSVG(getXYTile, compareTo, coordTopLeft, colorRect);
+        topLeft = tileConstructSVG(coordTopLeft, colorRect, rec);
     }
     var coordTopRight = { x: nx + 1, y: ny, z: nz };
     if (rec > 0 && isTileInfoMoreThanOne(coordTopRight)) {
-        topRight = tileConstructSubSVG(getXYTile, compareTo, isTileInfoMoreThanOne, coordTopRight, colorRect, rec - 1);
+        topRight = tileConstructSubSVG(coordTopRight, colorRect, rec - 1);
     }
     else {
-        topRight = tileConstructSVG(getXYTile, compareTo, coordTopRight, colorRect);
+        topRight = tileConstructSVG(coordTopRight, colorRect, rec);
     }
     var coordBottomRight = { x: nx + 1, y: ny + 1, z: nz };
     if (rec > 0 && isTileInfoMoreThanOne(coordBottomRight)) {
-        bottomRight = tileConstructSubSVG(getXYTile, compareTo, isTileInfoMoreThanOne, coordBottomRight, colorRect, rec - 1);
+        bottomRight = tileConstructSubSVG(coordBottomRight, colorRect, rec - 1);
     }
     else {
-        bottomRight = tileConstructSVG(getXYTile, compareTo, coordBottomRight, colorRect);
+        bottomRight = tileConstructSVG(coordBottomRight, colorRect, rec);
     }
     var coordBottomLeft = { x: nx, y: ny + 1, z: nz };
     if (rec > 0 && isTileInfoMoreThanOne(coordBottomLeft)) {
-        bottomLeft = tileConstructSubSVG(getXYTile, compareTo, isTileInfoMoreThanOne, coordBottomLeft, colorRect, rec - 1);
+        bottomLeft = tileConstructSubSVG(coordBottomLeft, colorRect, rec - 1);
     }
     else {
-        bottomLeft = tileConstructSVG(getXYTile, compareTo, coordBottomLeft, colorRect);
+        bottomLeft = tileConstructSVG(coordBottomLeft, colorRect, rec);
     }
     return "\n  <svg width=\"256px\" height=\"256px\" viewBox=\"0 0 512 512\" preserveAspectRatio=\"none\">\n    <svg width=\"256px\" height=\"256px\" viewBox=\"0 0 256 256\" preserveAspectRatio=\"none\">\n      " + topLeft + "\n    </svg>\n  </svg>\n  <svg width=\"256px\" height=\"256px\" viewBox=\"-256 0 512 512\" preserveAspectRatio=\"none\">\n    <svg width=\"256px\" height=\"256px\" viewBox=\"0 0 256 256\" preserveAspectRatio=\"none\">\n      " + topRight + "\n    </svg>\n  </svg>\n  <svg width=\"256px\" height=\"256px\" viewBox=\"-256 -256 512 512\" preserveAspectRatio=\"none\">\n    <svg width=\"256px\" height=\"256px\" viewBox=\"0 0 256 256\" preserveAspectRatio=\"none\">\n      " + bottomRight + "\n    </svg>\n  </svg>\n  <svg width=\"256px\" height=\"256px\" viewBox=\"0 -256 512 512\" preserveAspectRatio=\"none\">\n    <svg width=\"256px\" height=\"256px\" viewBox=\"0 0 256 256\" preserveAspectRatio=\"none\">\n      " + bottomLeft + "\n    </svg>\n  </svg>\n";
 }

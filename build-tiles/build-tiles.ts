@@ -55,7 +55,7 @@ function getXYTile (point) {
     return result.find(findXY,point);
 }
 
-result.forEach(function(row) {
+result.forEach(function(row) { 
 
     if (!fs.existsSync('../tiles_svg/4')) {
         fs.mkdirSync('../tiles_svg/4');

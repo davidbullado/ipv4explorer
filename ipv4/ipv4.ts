@@ -20,6 +20,28 @@ function getIpVal(x: number, y: number, z: number): number {
     }
     return ipval;
 }
+export function getIPFromXYZ(x, y, z) {
+
+    let ipval: number = 0;
+    const point: { x: number, y: number } = { x: 0, y: 0 };
+
+    for (let i: number = z; i > 0; i--) {
+
+        point.x = x >> (i - 1) & 1;
+        point.y = y >> (i - 1) & 1;
+
+        let m: number = point.x | (point.y << 1);
+        let n: number = point.x | point.y;
+
+        ipval += m * Math.pow(2, n * (32 - ((z - i + 1) << 1)));
+
+    }
+
+    let strip: string = (ipval >> 24 & 255) + "." + (ipval >> 16 & 255) + "." + (ipval >> 8 & 255) + "." + (ipval & 255);
+    const myIP: IPv4 = new IPv4(ipval);
+
+    return myIP;
+}
 
 export class IPv4 {
 
