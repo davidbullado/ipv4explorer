@@ -311,76 +311,141 @@ function tileConstructSVG(coord, colorRect, z_level) {
         }
         // right
         if (myNeighborsEquals[1][2]) {
-            rect.width += 15;
+            rect.width += 3;
             stroke += "\n      <line stroke-dasharray=\"4,4\" x1=\"255\" y1=\"10\" x2=\"255\" y2=\"245\" />\n      ";
         }
         // left
         if (myNeighborsEquals[1][0]) {
-            rect.x -= 15;
-            rect.width += 15;
+            rect.x -= 3;
+            rect.width += 3;
         }
         // top
         if (myNeighborsEquals[0][1]) {
-            rect.y -= 15;
-            rect.height += 15;
+            rect.y -= 3;
+            rect.height += 3;
         }
         // bottom
         if (myNeighborsEquals[2][1]) {
-            rect.height += 15;
+            rect.height += 3;
             stroke += "\n      <line stroke-dasharray=\"4,4\" x1=\"10\" y1=\"255\" x2=\"245\" y2=\"255\" />\n      ";
         }
         // left top
-        if (myNeighborsEquals[0][0]) {
-            join += "\n      <rect x=\"0\" y=\"0\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"-18\" cy=\"18\" r=\"21\" />\n      <circle cx=\"18\" cy=\"-18\" r=\"21\" />\n      ";
-        }
-        // right bottom
-        if (myNeighborsEquals[2][2]) {
-            join += "\n      <rect x=\"238\" y=\"238\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"238\" cy=\"274\" r=\"21\" />\n      <circle cx=\"274\" cy=\"238\" r=\"21\" />\n      ";
-        }
-        // if current tile equals its top right neighbor,
-        if (myNeighborsEquals[0][2]) {
-            join += "\n      <rect x=\"238\" y=\"0\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"238\" cy=\"-18\" r=\"21\" />\n      <circle cx=\"274\" cy=\"18\" r=\"21\" />\n      ";
-        }
-        // bottom left
-        if (myNeighborsEquals[2][0]) {
-            join += "\n      <rect x=\"0\" y=\"238\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      <circle cx=\"-18\" cy=\"238\" r=\"21\" />\n      <circle cx=\"18\" cy=\"274\" r=\"21\" />\n      ";
-        }
-        // Left top
-        if (!myNeighborsEquals[0][0] && nbEqualsBtwThem.topLeft) {
-            join += "\n      <polygon points=\"0,0 6,0 0,6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topLeft) + "\" />\n      ";
-        }
-        // Right bottom
-        if (!myNeighborsEquals[2][2] && nbEqualsBtwThem.botRight) {
-            join += "\n      <polygon points=\"256,256 250,256 256,250\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botRight) + "\" />\n      ";
-        }
-        // . . .          . . .
-        // . = . ?   &&   = . . ?
-        // = . .          . = .
-        // cross : patch with triangle
-        if (myNeighborsEquals[2][0] && nbEqualsBtwThem.botLeft) {
-            join += "\n      <polygon points=\"0,256 0,250 6,256\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botLeft) + "\" />\n      ";
-        }
-        else {
-            //  . . .
-            //  = . . ?
-            //  . = .
-            // Trace a curve
-            if (nbEqualsBtwThem.botLeft) {
-                join += "\n        <rect x=\"0\" y=\"250\" width=\"6\" height=\"6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botLeft) + "\" />\n        <circle cx=\"18\" cy=\"238\" r=\"21\" />\n        ";
+        if (myNeighborsEquals[0][0] || (myNeighborsEquals[1][0] && myNeighborsEquals[0][1])) {
+            join += "\n      <rect x=\"0\" y=\"0\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      ";
+            // if not equal left
+            if (!myNeighborsEquals[1][0]) {
+                join += "\n        <circle cx=\"-18\" cy=\"18\" r=\"21\" />\n        ";
+            }
+            // if not equal top
+            if (!myNeighborsEquals[0][1]) {
+                join += "\n        <circle cx=\"18\" cy=\"-18\" r=\"21\" />\n        ";
             }
         }
-        // cross : patch with triangle
-        if (myNeighborsEquals[0][2] && nbEqualsBtwThem.topRigth) {
-            join += "\n      <polygon points=\"256,0 250,0 256,6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topRigth) + "\" />\n      ";
+        // right bottom
+        if (myNeighborsEquals[2][2] || (myNeighborsEquals[1][2] && myNeighborsEquals[2][1])) {
+            join += "\n      <rect x=\"238\" y=\"238\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      ";
+            // if not equal with rigth
+            if (!myNeighborsEquals[1][2]) {
+                join += "\n        <circle cx=\"274\" cy=\"238\" r=\"21\" />\n        ";
+            }
+            // if not equal with bottom
+            if (!myNeighborsEquals[2][1]) {
+                join += "\n        <circle cx=\"238\" cy=\"274\" r=\"21\" />\n        ";
+            }
         }
-        else {
-            // otherwise, top and rigth are equal
-            if (nbEqualsBtwThem.topRigth) {
-                join += "\n        <rect x=\"250\" y=\"0\" width=\"6\" height=\"6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topRigth) + "\" />\n        <circle cx=\"238\" cy=\"18\" r=\"21\" />\n        ";
+        // if current tile equals its top right neighbor,
+        if (myNeighborsEquals[0][2] || (myNeighborsEquals[0][1] && myNeighborsEquals[1][2])) {
+            join += "\n      <rect x=\"238\" y=\"0\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      ";
+            // if not equal top
+            if (!myNeighborsEquals[0][1]) {
+                join += "\n        <circle cx=\"238\" cy=\"-18\" r=\"21\" />\n        ";
+            }
+            // if not equal right
+            if (!myNeighborsEquals[1][2]) {
+                join += "\n        <circle cx=\"274\" cy=\"18\" r=\"21\" />\n        ";
+            }
+        }
+        // bottom left (or tile bottom and left equal)
+        if (myNeighborsEquals[2][0] || (myNeighborsEquals[2][1] && myNeighborsEquals[1][0])) {
+            join += "\n      <rect x=\"0\" y=\"238\" width=\"18\" height=\"18\" fill=\"" + fillRect + "\" />\n      ";
+            // if not equal bottom
+            if (!myNeighborsEquals[2][1]) {
+                join += "\n        <circle cx=\"18\" cy=\"274\" r=\"21\" />\n        ";
+            }
+            // if not equal left
+            if (!myNeighborsEquals[1][0]) {
+                join += "\n        <circle cx=\"-18\" cy=\"238\" r=\"21\" />\n        ";
+            }
+        }
+        if (!(myNeighborsEquals[1][0] && myNeighborsEquals[0][1])) {
+            // Left top
+            if (!myNeighborsEquals[0][0] && nbEqualsBtwThem.topLeft) {
+                join += "\n        <polygon points=\"0,0 6,0 0,6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topLeft) + "\" />\n        ";
+            }
+        }
+        if (!(myNeighborsEquals[1][2] && myNeighborsEquals[2][1])) {
+            // Right bottom
+            if (!myNeighborsEquals[2][2] && nbEqualsBtwThem.botRight) {
+                join += "\n        <polygon points=\"256,256 250,256 256,250\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botRight) + "\" />\n        ";
+            }
+        }
+        // . . .  
+        // = = . not ? (because a rect fill it)
+        // . = .  
+        if (!(myNeighborsEquals[2][1] && myNeighborsEquals[1][0])) {
+            // . . .          . . .
+            // . = . ?   &&   = . . ?
+            // = . .          . = .
+            // cross : patch with triangle
+            if (myNeighborsEquals[2][0] && nbEqualsBtwThem.botLeft) {
+                join += "\n        <polygon points=\"0,256 0,250 6,256\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botLeft) + "\" />\n        ";
+            }
+            else {
+                //  . . .
+                //  = . . ?
+                //  . = .
+                // Trace a curve
+                if (nbEqualsBtwThem.botLeft) {
+                    join += "\n          <rect x=\"0\" y=\"250\" width=\"6\" height=\"6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.botLeft) + "\" />\n          <circle cx=\"18\" cy=\"238\" r=\"21\" />\n          ";
+                }
+            }
+        }
+        if (!(myNeighborsEquals[0][1] && myNeighborsEquals[1][2])) {
+            // cross : patch with triangle
+            if (myNeighborsEquals[0][2] && nbEqualsBtwThem.topRigth) {
+                join += "\n        <polygon points=\"256,0 250,0 256,6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topRigth) + "\" />\n        ";
+            }
+            else {
+                // otherwise, top and rigth are equal
+                if (nbEqualsBtwThem.topRigth) {
+                    join += "\n          <rect x=\"250\" y=\"0\" width=\"6\" height=\"6\" fill=\"" + getColorFromWhois(nbEqualsBtwThem.topRigth) + "\" />\n          <circle cx=\"238\" cy=\"18\" r=\"21\" />\n          ";
+                }
             }
         }
     }
-    return "\n  <defs>\n    <style type=\"text/css\">\n    <![CDATA[\n    text {\n      font-family: \"Open Sans\",arial,x-locale-body,sans-serif;\n     \n    }\n    line{\n      stroke: black;\n      stroke-width: 1;\n    }\n    circle{\n      fill: black;\n    }\n    ]]>\n  </style>\n  </defs>\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"190\" font-size=\"13\" fill=\"" + textcolor + "\">\n  <![CDATA[" + designation + "]]>\n  </text>\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + stroke + "\n  \n";
+    if (designation.length > 40) {
+        //designation.split(" ")
+        // for 
+    }
+    var rectJoin = "";
+    // big tile level
+    if (z_level === 3 && currentTile.z <= 14) {
+        var patchDepth = 2;
+        var patchNbTiles = Math.pow(2, patchDepth);
+        var offsetx = rect.x;
+        var patchWidth = (rect.width) / patchNbTiles;
+        var deeplevel = currentTile.z + patchDepth;
+        var deepx = currentTile.x * patchNbTiles;
+        var deepy = currentTile.y * patchNbTiles;
+        for (var i = 0; i < patchNbTiles; i++) {
+            var tile1 = getXYTile({ x: deepx + i, y: deepy - 1, z: deeplevel });
+            var tile2 = getXYTile({ x: deepx + i, y: deepy, z: deeplevel });
+            if (tile1 && tile2 && compareTiles(tile1, tile2)) {
+                rectJoin += "\n        <rect x=\"" + (offsetx + patchWidth * i) + "\" y=\"0\" width=\"" + patchWidth + "\" height=\"15\" fill=\"" + fillRect + "\" />\n        ";
+            }
+        }
+    }
+    return "\n  <defs>\n    <style type=\"text/css\">\n    <![CDATA[\n    text {\n      font-family: \"Open Sans\",arial,x-locale-body,sans-serif;\n     \n    }\n    line{\n      stroke: black;\n      stroke-width: 1;\n    }\n    circle{\n      fill: black;\n    }\n    ]]>\n  </style>\n  </defs>\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"190\" font-size=\"13\" fill=\"" + textcolor + "\">\n  <![CDATA[" + designation + "]]>\n  </text>\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + rectJoin + "\n  " + stroke + "\n  \n";
 }
 function tileConstruct(coord, colorRect) {
     var svgcontent;
@@ -388,7 +453,7 @@ function tileConstruct(coord, colorRect) {
         svgcontent = tileConstructSubSVG(coord, colorRect, 2);
     }
     else {
-        svgcontent = tileConstructSVG(coord, colorRect, 2);
+        svgcontent = tileConstructSVG(coord, colorRect, 3);
     }
     return "<?xml version=\"1.0\" standalone=\"no\"?>\n<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\" \n  \"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\">\n\n<svg width=\"256px\" height=\"256px\" version=\"1.1\"\n     viewBox=\"0 0 256 256\" preserveAspectRatio=\"none\"\n     xmlns=\"http://www.w3.org/2000/svg\" shape-rendering=\"geometricPrecision\">\n  " + svgcontent + "\n</svg>\n";
 }
