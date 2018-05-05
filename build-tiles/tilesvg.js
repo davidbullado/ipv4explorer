@@ -9,30 +9,65 @@ function getColorFromWhois(_a) {
         designation = "void";
     }
     var fillRect = "";
+    //switch (whois) {
+    //  case 'IANA':
+    //    fillRect="#f0f0f0";
+    //    break;
+    //  case 'APNIC':
+    //    fillRect="#FFDDDD";
+    //    break;
+    //  case 'RIPE':
+    //    fillRect="#BCD9D9";
+    //    break;
+    //  case 'AFRINIC':
+    //    fillRect="#CCECCC";
+    //    break;
+    //  case 'ARIN':
+    //    fillRect="#FFECDD";
+    //    break;
+    //  case 'LACNIC':
+    //    fillRect="#C9BAD7";
+    //    break;
+    //  default:
+    //   fillRect="#FFFFFF";
+    //}
     switch (whois) {
         case 'IANA':
             fillRect = "#f0f0f0";
             break;
         case 'APNIC':
-            fillRect = "#FFDDDD";
+            fillRect = "#EC3232";
             break;
         case 'RIPE':
-            fillRect = "#BCD9D9";
+            fillRect = "#6320EE";
             break;
         case 'AFRINIC':
-            fillRect = "#CCECCC";
+            fillRect = "#31B793";
             break;
         case 'ARIN':
-            fillRect = "#FFECDD";
+            fillRect = "#FF9F1C";
             break;
         case 'LACNIC':
-            fillRect = "#C9BAD7";
+            fillRect = "#FFFCF2";
             break;
         default:
             fillRect = "#FFFFFF";
     }
     fillRect = colorObjectToString(meanColor(colorStringToObject(fillRect), stringToColour(designation)));
     return fillRect;
+}
+function getTextColor(fillRect) {
+    var colorFillRect = colorStringToObject(fillRect);
+    var targetColor;
+    // if too bright
+    if (colorFillRect.r * 299 + colorFillRect.g * 587 + colorFillRect.b * 114 >= 128000) {
+        targetColor = colorStringToObject("#000000");
+    }
+    else {
+        targetColor = colorStringToObject("#eeeeee");
+    }
+    var textColor = colorObjectToString(meanColor(targetColor, colorFillRect));
+    return textColor;
 }
 function colorStringToObject(colorStr) {
     return {
@@ -206,6 +241,7 @@ function tileConstructSVG(coord, colorRect, z_level) {
     var date = "";
     var currentTile;
     var stroke = "";
+    var textcolor = "";
     if (getXYTile) {
         currentTile = getXYTile(coord);
         whois = currentTile.whois;
@@ -218,6 +254,7 @@ function tileConstructSVG(coord, colorRect, z_level) {
     else {
         fillRect = getColorFromWhois({ whois: whois, designation: designation });
     }
+    textcolor = getTextColor(fillRect);
     var join = "";
     var rect = {
         x: 3,
@@ -343,7 +380,7 @@ function tileConstructSVG(coord, colorRect, z_level) {
             }
         }
     }
-    return "\n  <defs>\n    <style type=\"text/css\">\n    <![CDATA[\n    text {\n      font-family: \"Open Sans\",arial,x-locale-body,sans-serif;\n      fill: #555;\n    }\n    line{\n      stroke: black;\n      stroke-width: 1;\n    }\n    circle{\n      fill: black;\n    }\n    ]]>\n  </style>\n  </defs>\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\"  >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" >\n    " + currentTile.ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"190\" font-size=\"13\" >\n  <![CDATA[" + designation + "]]>\n  </text>\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" >\n    " + date + "\n  </text>\n  " + stroke + "\n  \n";
+    return "\n  <defs>\n    <style type=\"text/css\">\n    <![CDATA[\n    text {\n      font-family: \"Open Sans\",arial,x-locale-body,sans-serif;\n     \n    }\n    line{\n      stroke: black;\n      stroke-width: 1;\n    }\n    circle{\n      fill: black;\n    }\n    ]]>\n  </style>\n  </defs>\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"190\" font-size=\"13\" fill=\"" + textcolor + "\">\n  <![CDATA[" + designation + "]]>\n  </text>\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + stroke + "\n  \n";
 }
 function tileConstruct(coord, colorRect) {
     var svgcontent;
