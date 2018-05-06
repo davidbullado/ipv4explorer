@@ -168,7 +168,7 @@ function buildTileSVG (x: number, y: number, z: number) {
     //    return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;
     //};
 
-    svgTileContent = tileConstruct( {x, y, z}, null);
+    svgTileContent = tileConstruct( {x, y, z});
 
     return svgTileContent;
 }

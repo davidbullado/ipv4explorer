@@ -219,7 +219,7 @@ var getTileInfo = (ipTile: IPv4, point) => {
       return null;
   }
 };
-var isTileInfoMoreThanOne = (point) => {
+function isTileInfoMoreThanOne (point) {
   const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,point.z);
   if (ipTile) {
       if ( point.z > 5 ) {
@@ -247,6 +247,219 @@ function compareTiles (tile1, tile2) {
   return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;
 };
 
+function genJoin(myNeighborsEquals, nbEqualsBtwThem, fillRect) {
+  let join = "";
+  // left top
+  if (myNeighborsEquals[0][0] ||  ( myNeighborsEquals[1][0] && myNeighborsEquals[0][1] )){
+    join += `
+    <rect x="0" y="0" width="18" height="18" fill="${fillRect}" />
+    `
+    // if not equal left
+    if (!myNeighborsEquals[1][0]){
+      join += `
+      <circle cx="-18" cy="18" r="21" />
+      `
+    }
+    // if not equal top
+    if (!myNeighborsEquals[0][1]){
+      join += `
+      <circle cx="18" cy="-18" r="21" />
+      `
+    }
+
+  }
+
+  
+  // right bottom
+  if (myNeighborsEquals[2][2] || ( myNeighborsEquals[1][2] && myNeighborsEquals[2][1] ) ){
+    join += `
+    <rect x="238" y="238" width="18" height="18" fill="${fillRect}" />
+    `
+    // if not equal with rigth
+    if (!myNeighborsEquals[1][2]) {
+      join += `
+      <circle cx="274" cy="238" r="21" />
+      `
+    }
+    // if not equal with bottom
+    if (!myNeighborsEquals[2][1]) {
+      join += `
+      <circle cx="238" cy="274" r="21" />
+      `
+    }
+
+  }
+
+  // if current tile equals its top right neighbor,
+  if (myNeighborsEquals[0][2] || ( myNeighborsEquals[0][1] && myNeighborsEquals[1][2] )) {
+    join += `
+    <rect x="238" y="0" width="18" height="18" fill="${fillRect}" />
+    `
+    // if not equal top
+    if (!myNeighborsEquals[0][1]){
+      join += `
+      <circle cx="238" cy="-18" r="21" />
+      `
+    }
+    // if not equal right
+    if (!myNeighborsEquals[1][2]){
+      join += `
+      <circle cx="274" cy="18" r="21" />
+      `
+    }
+  }
+
+  // bottom left (or tile bottom and left equal)
+  if (myNeighborsEquals[2][0] || ( myNeighborsEquals[2][1] && myNeighborsEquals[1][0] )) {
+    join += `
+    <rect x="0" y="238" width="18" height="18" fill="${fillRect}" />
+    `
+    // if not equal bottom
+    if(!myNeighborsEquals[2][1]){
+      join += `
+      <circle cx="18" cy="274" r="21" />
+      `
+    }
+    // if not equal left
+    if (!myNeighborsEquals[1][0]){
+      join += `
+      <circle cx="-18" cy="238" r="21" />
+      `
+    }
+    
+  }
+
+  if (!( myNeighborsEquals[1][0] && myNeighborsEquals[0][1] )){
+    // Left top
+    if (!myNeighborsEquals[0][0] && nbEqualsBtwThem.topLeft) {
+      join += `
+      <polygon points="0,0 6,0 0,6" fill="${getColorFromWhois(nbEqualsBtwThem.topLeft)}" />
+      `
+    }
+  }
+
+  if (!( myNeighborsEquals[1][2] && myNeighborsEquals[2][1] )) {
+    // Right bottom
+    if (!myNeighborsEquals[2][2] && nbEqualsBtwThem.botRight) {
+      join += `
+      <polygon points="256,256 250,256 256,250" fill="${getColorFromWhois(nbEqualsBtwThem.botRight)}" />
+      `
+    }
+  }
+    // . . .  
+    // = = . not ? (because a rect fill it)
+    // . = .  
+  if (!(myNeighborsEquals[2][1] && myNeighborsEquals[1][0])){
+    // . . .          . . .
+    // . = . ?   &&   = . . ?
+    // = . .          . = .
+    // cross : patch with triangle
+    if (myNeighborsEquals[2][0] && nbEqualsBtwThem.botLeft ) {
+      join += `
+      <polygon points="0,256 0,250 6,256" fill="${getColorFromWhois(nbEqualsBtwThem.botLeft)}" />
+      `
+    } else {
+      //  . . .
+      //  = . . ?
+      //  . = .
+      // Trace a curve
+      if (nbEqualsBtwThem.botLeft ) {
+        join += `
+        <rect x="0" y="250" width="6" height="6" fill="${getColorFromWhois(nbEqualsBtwThem.botLeft)}" />
+        <circle cx="18" cy="238" r="21" />
+        `
+      }
+    }
+  }
+
+  if (!(myNeighborsEquals[0][1] && myNeighborsEquals[1][2])){
+    // cross : patch with triangle
+    if (myNeighborsEquals[0][2] &&  nbEqualsBtwThem.topRigth ) {
+      join += `
+      <polygon points="256,0 250,0 256,6" fill="${getColorFromWhois(nbEqualsBtwThem.topRigth)}" />
+      `
+    } else {
+      // otherwise, top and rigth are equal
+      if ( nbEqualsBtwThem.topRigth ) {
+        join += `
+        <rect x="250" y="0" width="6" height="6" fill="${getColorFromWhois(nbEqualsBtwThem.topRigth)}" />
+        <circle cx="238" cy="18" r="21" />
+        `
+      }
+    }
+  }
+  return join;
+}
+
+function genMatrix (currentTile, zinit, bigTile){
+  var myNeighbors = [
+      [null,null,null],
+      [null,null,null],
+      [null,null,null]
+  ]
+  var myNeighborsEquals = [
+      [false,false,false],
+      [false,false,false],
+      [false,false,false]
+  ];
+
+  
+
+  // ie: 10 - 8 = 2
+  let deltaz = 0;
+  if (bigTile){
+    deltaz= currentTile.z - zinit;
+  }
+
+  for (var y=-1; y <= 1 ; y++){
+      for (var x=-1; x <= 1; x++){
+          if (y===0 && x===0) {
+            continue;
+          }
+          const tileComp = {x: currentTile.x+x, y: currentTile.y+y, z: currentTile.z};
+          if (deltaz > 0) {
+            let tileAnsector = {x: tileComp.x >> deltaz,  y: tileComp.y >> deltaz,  z: zinit};
+            if (!isTileInfoMoreThanOne(tileAnsector)) {
+              continue;
+            }
+          }
+          var neighborTile = getXYTile(tileComp);
+          // store neighbors reference
+          myNeighbors[y+1][x+1] = neighborTile;
+          // If neighbor shares the same whois
+          if (neighborTile && compareTiles (neighborTile, currentTile)){
+              myNeighborsEquals[y+1][x+1] = true; 
+          }
+      }
+  }
+  var nbTop   = myNeighbors[0][1];
+  var nbRight = myNeighbors[1][2];
+  var nbBot   = myNeighbors[2][1];
+  var nbLeft  = myNeighbors[1][0];
+
+  var nbEqualsBtwThem = {
+      topRigth: null,
+      botRight: null,
+      botLeft: null,
+      topLeft: null
+  }
+
+  if (nbTop && nbRight && compareTiles (nbTop,nbRight)){
+      nbEqualsBtwThem.topRigth = { whois: nbTop.whois, designation: nbTop.desc };
+  }
+  if (nbRight && nbBot && compareTiles (nbRight,nbBot)){
+      nbEqualsBtwThem.botRight = { whois: nbRight.whois , designation: nbRight.desc };
+  }
+  if (nbBot && nbLeft && compareTiles (nbBot,nbLeft)){
+      nbEqualsBtwThem.botLeft = { whois: nbBot.whois , designation: nbBot.desc };
+  }
+  if (nbLeft && nbTop && compareTiles (nbLeft,nbTop)){
+      nbEqualsBtwThem.topLeft = { whois: nbLeft.whois , designation: nbLeft.desc };
+  }
+
+  return {myNeighbors, myNeighborsEquals, nbEqualsBtwThem};
+}
+
 /**
  * 
  * @param getXYTile 
@@ -255,29 +468,17 @@ function compareTiles (tile1, tile2) {
  * @param colorRect 
  * @param z_level Information about z depth. When multiple sub tiles are computed, indicate at which level there are. z -> 0 indicates the tile will be very tiny. So it is not necessary to compute many details
  */
-function tileConstructSVG (coord, colorRect, z_level) {
+function tileConstructSVG (coord, z_level, zinit) {
 
-  var fillRect ;
-
-  let whois: string = "";
-  let designation: string = "";
-  let date: string = "";
-  let currentTile;
   let stroke = "";
   let textcolor = "";
 
-  if (getXYTile) {
-    currentTile = getXYTile(coord);
-    whois       = currentTile.whois;
-    designation = currentTile.desc;
-    date        = currentTile.date;
-  }
+  const currentTile = getXYTile(coord);
+  const whois       = currentTile.whois;
+  const designation = currentTile.desc;
+  const date        = currentTile.date;
 
-  if (colorRect){
-    fillRect = colorRect;
-  } else {
-    fillRect = getColorFromWhois({whois,designation});
-  }
+  const fillRect = getColorFromWhois({whois,designation});
 
   textcolor = getTextColor(fillRect);
 
@@ -291,224 +492,143 @@ function tileConstructSVG (coord, colorRect, z_level) {
   
 
   if (z_level > 0 && getXYTile) {
-    var myNeighbors = [
-        [null,null,null],
-        [null,null,null],
-        [null,null,null]
-    ]
-    var myNeighborsEquals = [
-        [false,false,false],
-        [false,false,false],
-        [false,false,false]
-    ];
+    var {myNeighbors, myNeighborsEquals, nbEqualsBtwThem} = genMatrix (currentTile,zinit,false) ;
 
-    for (var y=-1; y <= 1 ; y++){
-        for (var x=-1; x <= 1; x++){
-            if (y===0 && x===0) {
-              continue;
-            }
-            var neighborTile = getXYTile({x: currentTile.x+x, y: currentTile.y+y, z: currentTile.z});
-            // store neighbors reference
-            myNeighbors[y+1][x+1] = neighborTile;
-            // If neighbor shares the same whois
-            if (neighborTile && compareTiles (neighborTile, currentTile)){
-                myNeighborsEquals[y+1][x+1] = true; 
-            }
-        }
-    }
+    //var nbTop   = myNeighbors[0][1];
+    //var nbRight = myNeighbors[1][2];
+    //var nbBot   = myNeighbors[2][1];
+    //var nbLeft  = myNeighbors[1][0];
 
-    var nbTop   = myNeighbors[0][1];
-    var nbRight = myNeighbors[1][2];
-    var nbBot   = myNeighbors[2][1];
-    var nbLeft  = myNeighbors[1][0];
+    //var nbEqualsBtwThem = {
+    //    topRigth: null,
+    //    botRight: null,
+    //    botLeft: null,
+    //    topLeft: null
+    //}
+//
+    //if (nbTop && nbRight && compareTiles (nbTop,nbRight)){
+    //    nbEqualsBtwThem.topRigth = { whois: nbTop.whois, designation: nbTop.desc };
+    //}
+    //if (nbRight && nbBot && compareTiles (nbRight,nbBot)){
+    //    nbEqualsBtwThem.botRight = { whois: nbRight.whois , designation: nbRight.desc };
+    //}
+    //if (nbBot && nbLeft && compareTiles (nbBot,nbLeft)){
+    //    nbEqualsBtwThem.botLeft = { whois: nbBot.whois , designation: nbBot.desc };
+    //}
+    //if (nbLeft && nbTop && compareTiles (nbLeft,nbTop)){
+    //    nbEqualsBtwThem.topLeft = { whois: nbLeft.whois , designation: nbLeft.desc };
+    //}
 
-    var nbEqualsBtwThem = {
-        topRigth: null,
-        botRight: null,
-        botLeft: null,
-        topLeft: null
-    }
-
-    if (nbTop && nbRight && compareTiles (nbTop,nbRight)){
-        nbEqualsBtwThem.topRigth = { whois: nbTop.whois, designation: nbTop.desc };
-    }
-    if (nbRight && nbBot && compareTiles (nbRight,nbBot)){
-        nbEqualsBtwThem.botRight = { whois: nbRight.whois , designation: nbRight.desc };
-    }
-    if (nbBot && nbLeft && compareTiles (nbBot,nbLeft)){
-        nbEqualsBtwThem.botLeft = { whois: nbBot.whois , designation: nbBot.desc };
-    }
-    if (nbLeft && nbTop && compareTiles (nbLeft,nbTop)){
-        nbEqualsBtwThem.topLeft = { whois: nbLeft.whois , designation: nbLeft.desc };
-    }
-
+    const sizeMaskBorder = 16;
     
-    
+
+    var rectJoin = "";
+    const offsetx = 2 ;
+    const patchDepth = 2 ;
+    const patchNbTiles = Math.pow(2, patchDepth);
+    const patchWidth = (256-2*offsetx) / patchNbTiles ;
+    const patchHeight = 15;
+    const deeplevel = currentTile.z + patchDepth ;
+    const comparable = z_level === 3 && currentTile.z <= 14 && ((currentTile.z <= 5 && patchDepth <= 5) || (currentTile.z > 5 && patchDepth > 5));
+    let deepx;
+    let deepy;
+
     // right
     if (myNeighborsEquals[1][2]) {
-      rect.width+=3;
+      rect.width+=sizeMaskBorder;
       stroke += `
       <line stroke-dasharray="4,4" x1="255" y1="10" x2="255" y2="245" />
       `
+    } else {
+      // big tile level
+      if (comparable ) {
+        deepx = (currentTile.x+1) * patchNbTiles ;
+        deepy = currentTile.y * patchNbTiles ;
+        for (let i =0 ; i < patchNbTiles ; i++){
+          const tile1 = getXYTile({x: deepx  , y: deepy+i, z: deeplevel});
+          const tile2 = getXYTile({x: deepx-1, y: deepy+i, z: deeplevel});
+          if (tile1 && tile2 && compareTiles (tile1, tile2)) {
+            rectJoin += `
+            <rect x="${256-15}" y="${offsetx+i*patchWidth}" width="${patchHeight}" height="${patchWidth}" fill="${fillRect}" />
+            <line stroke-dasharray="2,2" x1="255" y1="${offsetx+i*patchWidth}" x2="255" y2="${offsetx+(i+1)*patchWidth}" />
+            `
+          }
+        }
+      }
     }
     // left
     if (myNeighborsEquals[1][0]) {
-      rect.x-=3;
-      rect.width+=3;
+      rect.x-=sizeMaskBorder;
+      rect.width+=sizeMaskBorder;
+    } else {
+      // big tile level
+      if (comparable ) {
+        deepx = currentTile.x * patchNbTiles ;
+        deepy = currentTile.y * patchNbTiles ;
+        for (let i =0 ; i < patchNbTiles ; i++){
+          const tile1 = getXYTile({x: deepx  , y: deepy+i, z: deeplevel});
+          const tile2 = getXYTile({x: deepx-1, y: deepy+i, z: deeplevel});
+          if (tile1 && tile2 && compareTiles (tile1, tile2)) {
+            rectJoin += `
+            <rect x="0" y="${offsetx+i*patchWidth}" width="${patchHeight}" height="${patchWidth}" fill="${fillRect}" />
+            
+            `
+          }
+        }
+      }
     }
+
     // top
     if (myNeighborsEquals[0][1]) {
-      rect.y-=3;
-      rect.height+=3;
+      rect.y-=sizeMaskBorder;
+      rect.height+=sizeMaskBorder;
+    } else {
+      
+      // big tile level
+      if (comparable  ) {
+        deepx = currentTile.x * patchNbTiles ;
+        deepy = currentTile.y * patchNbTiles ;
+        for (let i =0 ; i < patchNbTiles ; i++){
+          const tile1 = getXYTile({x: deepx+i, y: deepy-1, z: deeplevel});
+          const tile2 = getXYTile({x: deepx+i, y: deepy  , z: deeplevel});
+          if (tile1 && tile2 && compareTiles (tile1, tile2)) {
+            rectJoin += `
+            <rect x="${offsetx+patchWidth*i}" y="0" width="${patchWidth}" height="${patchHeight}" fill="${fillRect}" />
+            `
+          }
+        }
+      }
+
     }
+
     // bottom
     if (myNeighborsEquals[2][1]) {
-      rect.height+=3;
+      rect.height+=16;
       stroke += `
       <line stroke-dasharray="4,4" x1="10" y1="255" x2="245" y2="255" />
       `
-    }
-
-    
-    // left top
-    if (myNeighborsEquals[0][0] ||  ( myNeighborsEquals[1][0] && myNeighborsEquals[0][1] )){
-      join += `
-      <rect x="0" y="0" width="18" height="18" fill="${fillRect}" />
-      `
-      // if not equal left
-      if (!myNeighborsEquals[1][0]){
-        join += `
-        <circle cx="-18" cy="18" r="21" />
-        `
-      }
-      // if not equal top
-      if (!myNeighborsEquals[0][1]){
-        join += `
-        <circle cx="18" cy="-18" r="21" />
-        `
-      }
-
-    }
-
-    
-    // right bottom
-    if (myNeighborsEquals[2][2] || ( myNeighborsEquals[1][2] && myNeighborsEquals[2][1] ) ){
-      join += `
-      <rect x="238" y="238" width="18" height="18" fill="${fillRect}" />
-      `
-      // if not equal with rigth
-      if (!myNeighborsEquals[1][2]) {
-        join += `
-        <circle cx="274" cy="238" r="21" />
-        `
-      }
-      // if not equal with bottom
-      if (!myNeighborsEquals[2][1]) {
-        join += `
-        <circle cx="238" cy="274" r="21" />
-        `
-      }
-
-    }
-
-    // if current tile equals its top right neighbor,
-    if (myNeighborsEquals[0][2] || ( myNeighborsEquals[0][1] && myNeighborsEquals[1][2] )) {
-      join += `
-      <rect x="238" y="0" width="18" height="18" fill="${fillRect}" />
-      `
-      // if not equal top
-      if (!myNeighborsEquals[0][1]){
-        join += `
-        <circle cx="238" cy="-18" r="21" />
-        `
-      }
-      // if not equal right
-      if (!myNeighborsEquals[1][2]){
-        join += `
-        <circle cx="274" cy="18" r="21" />
-        `
-      }
-    }
-
-    // bottom left (or tile bottom and left equal)
-    if (myNeighborsEquals[2][0] || ( myNeighborsEquals[2][1] && myNeighborsEquals[1][0] )) {
-      join += `
-      <rect x="0" y="238" width="18" height="18" fill="${fillRect}" />
-      `
-      // if not equal bottom
-      if(!myNeighborsEquals[2][1]){
-        join += `
-        <circle cx="18" cy="274" r="21" />
-        `
-      }
-      // if not equal left
-      if (!myNeighborsEquals[1][0]){
-        join += `
-        <circle cx="-18" cy="238" r="21" />
-        `
-      }
-      
-    }
-  
-    if (!( myNeighborsEquals[1][0] && myNeighborsEquals[0][1] )){
-      // Left top
-      if (!myNeighborsEquals[0][0] && nbEqualsBtwThem.topLeft) {
-        join += `
-        <polygon points="0,0 6,0 0,6" fill="${getColorFromWhois(nbEqualsBtwThem.topLeft)}" />
-        `
-      }
-    }
-
-    if (!( myNeighborsEquals[1][2] && myNeighborsEquals[2][1] )) {
-      // Right bottom
-      if (!myNeighborsEquals[2][2] && nbEqualsBtwThem.botRight) {
-        join += `
-        <polygon points="256,256 250,256 256,250" fill="${getColorFromWhois(nbEqualsBtwThem.botRight)}" />
-        `
-      }
-    }
-      // . . .  
-      // = = . not ? (because a rect fill it)
-      // . = .  
-    if (!(myNeighborsEquals[2][1] && myNeighborsEquals[1][0])){
-      // . . .          . . .
-      // . = . ?   &&   = . . ?
-      // = . .          . = .
-      // cross : patch with triangle
-      if (myNeighborsEquals[2][0] && nbEqualsBtwThem.botLeft ) {
-        join += `
-        <polygon points="0,256 0,250 6,256" fill="${getColorFromWhois(nbEqualsBtwThem.botLeft)}" />
-        `
-      } else {
-        //  . . .
-        //  = . . ?
-        //  . = .
-        // Trace a curve
-        if (nbEqualsBtwThem.botLeft ) {
-          join += `
-          <rect x="0" y="250" width="6" height="6" fill="${getColorFromWhois(nbEqualsBtwThem.botLeft)}" />
-          <circle cx="18" cy="238" r="21" />
-          `
+    } else {
+      // big tile level
+      if (comparable ) {
+        deepx = currentTile.x * patchNbTiles ;
+        deepy = (currentTile.y+1) * patchNbTiles ;
+        for (let i =0 ; i < patchNbTiles ; i++){
+          const tile1 = getXYTile({x: deepx+i, y: deepy-1, z: deeplevel});
+          const tile2 = getXYTile({x: deepx+i, y: deepy  , z: deeplevel});
+          if (tile1 && tile2 && compareTiles (tile1, tile2)) {
+            rectJoin += `
+            <rect x="${offsetx+patchWidth*i}" y="${256-15}" width="${patchWidth}" height="${patchHeight}" fill="${fillRect}" />
+            <line stroke-dasharray="2,2" x1="${offsetx+i*patchWidth}" y1="255" x2="${offsetx+(i+1)*patchWidth}" y2="255" />
+            `
+          }
         }
       }
     }
 
-    if (!(myNeighborsEquals[0][1] && myNeighborsEquals[1][2])){
-      // cross : patch with triangle
-      if (myNeighborsEquals[0][2] &&  nbEqualsBtwThem.topRigth ) {
-        join += `
-        <polygon points="256,0 250,0 256,6" fill="${getColorFromWhois(nbEqualsBtwThem.topRigth)}" />
-        `
-      } else {
-        // otherwise, top and rigth are equal
-        if ( nbEqualsBtwThem.topRigth ) {
-          join += `
-          <rect x="250" y="0" width="6" height="6" fill="${getColorFromWhois(nbEqualsBtwThem.topRigth)}" />
-          <circle cx="238" cy="18" r="21" />
-          `
-        }
-      }
-    }
+    var {myNeighbors, myNeighborsEquals, nbEqualsBtwThem} = genMatrix (currentTile,zinit,true) ;
+    join = genJoin(myNeighborsEquals, nbEqualsBtwThem, fillRect) ;
+
+
   }
 
   if (designation.length > 40){
@@ -516,46 +636,7 @@ function tileConstructSVG (coord, colorRect, z_level) {
    // for 
   }
 
-  let rectJoin = "";
-  // big tile level
-  if (z_level === 3 && currentTile.z <= 14 ) {
-    const patchDepth = 2 ;
-    const patchNbTiles = Math.pow(2, patchDepth);
-    const offsetx = rect.x;
-    const patchWidth = (rect.width) / patchNbTiles ;
-
-    const deeplevel = currentTile.z + patchDepth ;
-    const deepx = currentTile.x * patchNbTiles ;
-    const deepy = currentTile.y * patchNbTiles ;
-    for (let i =0 ; i < patchNbTiles ; i++){
-      const tile1 = getXYTile({x: deepx+i, y: deepy-1, z: deeplevel});
-      const tile2 = getXYTile({x: deepx+i, y: deepy  , z: deeplevel});
-      if (tile1 && tile2 && compareTiles (tile1, tile2)) {
-        rectJoin += `
-        <rect x="${offsetx+patchWidth*i}" y="0" width="${patchWidth}" height="15" fill="${fillRect}" />
-        `
-      }
-    }
-  }
-
   return `
-  <defs>
-    <style type="text/css">
-    <![CDATA[
-    text {
-      font-family: "Open Sans",arial,x-locale-body,sans-serif;
-     
-    }
-    line{
-      stroke: black;
-      stroke-width: 1;
-    }
-    circle{
-      fill: black;
-    }
-    ]]>
-  </style>
-  </defs>
 
   ${join}
 
@@ -579,14 +660,14 @@ function tileConstructSVG (coord, colorRect, z_level) {
 `;
 }
 
-function tileConstruct ( coord, colorRect) {
+function tileConstruct ( coord) {
   
   let svgcontent ;
 
   if (isTileInfoMoreThanOne(coord)) {
-    svgcontent = tileConstructSubSVG ( coord, colorRect, 2);
+    svgcontent = tileConstructSubSVG ( coord, 2, coord.z);
   } else {
-    svgcontent = tileConstructSVG ( coord, colorRect,3);
+    svgcontent = tileConstructSVG ( coord, 3, coord.z);
   }
 
   return `<?xml version="1.0" standalone="no"?>
@@ -596,12 +677,29 @@ function tileConstruct ( coord, colorRect) {
 <svg width="256px" height="256px" version="1.1"
      viewBox="0 0 256 256" preserveAspectRatio="none"
      xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
+  <defs>
+  <style type="text/css">
+    <![CDATA[
+    text {
+      font-family: "Open Sans",arial,x-locale-body,sans-serif;
+    
+    }
+    line{
+      stroke: black;
+      stroke-width: 1;
+    }
+    circle{
+      fill: black;
+    }
+    ]]>
+  </style>
+  </defs>
   ${svgcontent}
 </svg>
 `;
 }
 
-function tileConstructSubSVG (coord, colorRect, rec) {
+function tileConstructSubSVG (coord, rec, zinit) {
   const nx = coord.x * 2;
   const ny = coord.y * 2;
   const nz = coord.z + 1;
@@ -614,52 +712,65 @@ function tileConstructSubSVG (coord, colorRect, rec) {
   const coordTopLeft = {x: nx,     y: ny,     z: nz} ;
 
   if (rec > 0 && isTileInfoMoreThanOne(coordTopLeft)) {
-    topLeft     = tileConstructSubSVG ( coordTopLeft, colorRect, rec-1);
+    topLeft     = tileConstructSubSVG ( coordTopLeft, rec-1, zinit);
   } else {
-    topLeft     = tileConstructSVG (coordTopLeft, colorRect, rec);
+    topLeft     = tileConstructSVG (coordTopLeft, rec, zinit);
   }
 
   const coordTopRight = {x: nx + 1, y: ny,     z: nz} ;
 
   if (rec > 0 && isTileInfoMoreThanOne(coordTopRight)) {
-    topRight     = tileConstructSubSVG ( coordTopRight, colorRect, rec-1);
+    topRight     = tileConstructSubSVG ( coordTopRight, rec-1, zinit);
   } else {
-    topRight     = tileConstructSVG ( coordTopRight, colorRect, rec);
+    topRight     = tileConstructSVG ( coordTopRight, rec, zinit);
   }
 
   const coordBottomRight = {x: nx + 1, y: ny + 1, z: nz} ;
 
   if (rec > 0 && isTileInfoMoreThanOne(coordBottomRight)) {
-    bottomRight     = tileConstructSubSVG ( coordBottomRight, colorRect, rec-1);
+    bottomRight     = tileConstructSubSVG ( coordBottomRight, rec-1, zinit);
   } else {
-    bottomRight     = tileConstructSVG ( coordBottomRight, colorRect, rec);
+    bottomRight     = tileConstructSVG ( coordBottomRight, rec, zinit);
   }
 
   const coordBottomLeft = {x: nx,     y: ny + 1, z: nz} ;
 
   if (rec > 0 && isTileInfoMoreThanOne(coordBottomLeft)) {
-    bottomLeft     = tileConstructSubSVG ( coordBottomLeft, colorRect, rec-1);
+    bottomLeft     = tileConstructSubSVG ( coordBottomLeft, rec-1, zinit);
   } else {
-    bottomLeft     = tileConstructSVG ( coordBottomLeft, colorRect, rec);
+    bottomLeft     = tileConstructSVG ( coordBottomLeft, rec, zinit);
   }
 
+  const currentTile = getXYTile(coord);
+  const whois       = currentTile.whois;
+  const designation = currentTile.desc;
+  //const date        = currentTile.date;
+
+  const fillRect = getColorFromWhois({whois,designation});
+  var {myNeighbors, myNeighborsEquals, nbEqualsBtwThem} = genMatrix (currentTile,zinit,true) ;
+  const join = genJoin(myNeighborsEquals, nbEqualsBtwThem, fillRect) ;
+
+  const initSize = 256;
+  const offset = 0 ;
+  const sizeblock = initSize-offset;
   return `
-  <svg width="256px" height="256px" viewBox="0 0 512 512" preserveAspectRatio="none">
+  ${join}
+  <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${offset} -${offset} 512 512" preserveAspectRatio="none">
     <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
       ${topLeft}
     </svg>
   </svg>
-  <svg width="256px" height="256px" viewBox="-256 0 512 512" preserveAspectRatio="none">
+  <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${initSize+offset} -${offset} 512 512" preserveAspectRatio="none">
     <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
       ${topRight}
     </svg>
   </svg>
-  <svg width="256px" height="256px" viewBox="-256 -256 512 512" preserveAspectRatio="none">
+  <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${initSize+offset} -${initSize+offset} 512 512" preserveAspectRatio="none">
     <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
       ${bottomRight}
     </svg>
   </svg>
-  <svg width="256px" height="256px" viewBox="0 -256 512 512" preserveAspectRatio="none">
+  <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${offset} -${initSize+offset} 512 512" preserveAspectRatio="none">
     <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
       ${bottomLeft}
     </svg>

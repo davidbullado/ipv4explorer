@@ -156,7 +156,7 @@ function buildTileSVG(x, y, z) {
     //var compareTiles = (tile1, tile2) => {
     //    return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;
     //};
-    svgTileContent = tilesvg_1.tileConstruct({ x: x, y: y, z: z }, null);
+    svgTileContent = tilesvg_1.tileConstruct({ x: x, y: y, z: z });
     return svgTileContent;
 }
 router.get("/:z/:x/:y", function (req, res) {
