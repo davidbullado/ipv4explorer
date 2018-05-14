@@ -240,8 +240,13 @@ function isTileInfoMoreThanOne (point) {
   }
 };
 function getXYTile (point) {
-  const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,point.z);
-  return getTileInfo(ipTile, point);
+  let ipTile: IPv4;
+  const maxCoord: number = Math.pow(2,point.z);
+  if (point.x < maxCoord && point.y < maxCoord) {
+    ipTile = getIPFromXYZ(point.x,point.y,point.z);
+    return getTileInfo(ipTile, point);
+  }
+  return null;
 };
 function compareTiles (tile1, tile2) {
   return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;

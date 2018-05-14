@@ -219,8 +219,13 @@ function isTileInfoMoreThanOne(point) {
 }
 ;
 function getXYTile(point) {
-    var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
-    return getTileInfo(ipTile, point);
+    var ipTile;
+    var maxCoord = Math.pow(2, point.z);
+    if (point.x < maxCoord && point.y < maxCoord) {
+        ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
+        return getTileInfo(ipTile, point);
+    }
+    return null;
 }
 ;
 function compareTiles(tile1, tile2) {
@@ -409,7 +414,7 @@ function tileConstructSVG(coord, z_level, zinit) {
         width: 250,
         height: 250
     };
-    if (z_level > 0 && getXYTile) {
+    if (z_level > 0) {
         var _a = genMatrix(currentTile, zinit, false), myNeighbors = _a.myNeighbors, myNeighborsEquals = _a.myNeighborsEquals, nbEqualsBtwThem = _a.nbEqualsBtwThem;
         var sizeMaskBorder = 16;
         var rectJoin = "";
