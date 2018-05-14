@@ -221,6 +221,7 @@ function isTileInfoMoreThanOne(point) {
 function getXYTile(point) {
     var ipTile;
     var maxCoord = Math.pow(2, point.z);
+    // out of bounds ?
     if (point.x < maxCoord && point.y < maxCoord) {
         ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
         return getTileInfo(ipTile, point);
@@ -424,7 +425,7 @@ function tileConstructSVG(coord, z_level, zinit) {
         var patchWidth = (256 - 2 * offsetx) / patchNbTiles;
         var patchHeight = 15;
         var deeplevel = currentTile.z + patchDepth;
-        var comparable = z_level > 1 && currentTile.z <= 14 && ((currentTile.z <= 4 && zinit <= 4) || (currentTile.z > 4 && zinit > 4));
+        var comparable = z_level > 0 && currentTile.z <= 14 && ((currentTile.z <= 5 && deeplevel <= 5) || (currentTile.z > 5 && deeplevel > 5));
         var deepx = void 0;
         var deepy = void 0;
         // right
@@ -565,6 +566,11 @@ function tileConstructSubSVG(coord, rec, zinit) {
     //const date        = currentTile.date;
     var fillRect = getColorFromWhois({ whois: whois, designation: designation });
     var _a = genMatrix(currentTile, zinit, true), myNeighbors = _a.myNeighbors, myNeighborsEquals = _a.myNeighborsEquals, nbEqualsBtwThem = _a.nbEqualsBtwThem;
+    myNeighborsEquals = [
+        [false, false, false],
+        [false, false, false],
+        [false, false, false]
+    ];
     var join = genJoin(myNeighborsEquals, nbEqualsBtwThem, fillRect);
     var initSize = 256;
     var offset = 0;

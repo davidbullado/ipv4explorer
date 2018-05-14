@@ -242,6 +242,7 @@ function isTileInfoMoreThanOne (point) {
 function getXYTile (point) {
   let ipTile: IPv4;
   const maxCoord: number = Math.pow(2,point.z);
+  // out of bounds ?
   if (point.x < maxCoord && point.y < maxCoord) {
     ipTile = getIPFromXYZ(point.x,point.y,point.z);
     return getTileInfo(ipTile, point);
@@ -509,7 +510,7 @@ function tileConstructSVG (coord, z_level, zinit) {
     const patchWidth = (256-2*offsetx) / patchNbTiles ;
     const patchHeight = 15;
     const deeplevel = currentTile.z + patchDepth ;
-    const comparable = z_level > 1 && currentTile.z <= 14 && ((currentTile.z <= 4 && zinit <= 4) || (currentTile.z > 4 && zinit > 4));
+    const comparable = z_level > 0 && currentTile.z <= 14 && ((currentTile.z <= 5 && deeplevel <= 5) || (currentTile.z > 5 && deeplevel > 5));
     let deepx;
     let deepy;
 
@@ -728,11 +729,17 @@ function tileConstructSubSVG (coord, rec, zinit) {
 
   const fillRect = getColorFromWhois({whois,designation});
   var {myNeighbors, myNeighborsEquals, nbEqualsBtwThem} = genMatrix (currentTile,zinit,true) ;
+myNeighborsEquals = [
+    [false,false,false],
+    [false,false,false],
+    [false,false,false]
+];
   const join = genJoin(myNeighborsEquals, nbEqualsBtwThem, fillRect) ;
 
   const initSize = 256;
   const offset = 0 ;
   const sizeblock = initSize-offset;
+
   return `
   ${join}
   <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${offset} -${offset} 512 512" preserveAspectRatio="none">
