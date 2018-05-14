@@ -411,29 +411,6 @@ function tileConstructSVG(coord, z_level, zinit) {
     };
     if (z_level > 0 && getXYTile) {
         var _a = genMatrix(currentTile, zinit, false), myNeighbors = _a.myNeighbors, myNeighborsEquals = _a.myNeighborsEquals, nbEqualsBtwThem = _a.nbEqualsBtwThem;
-        //var nbTop   = myNeighbors[0][1];
-        //var nbRight = myNeighbors[1][2];
-        //var nbBot   = myNeighbors[2][1];
-        //var nbLeft  = myNeighbors[1][0];
-        //var nbEqualsBtwThem = {
-        //    topRigth: null,
-        //    botRight: null,
-        //    botLeft: null,
-        //    topLeft: null
-        //}
-        //
-        //if (nbTop && nbRight && compareTiles (nbTop,nbRight)){
-        //    nbEqualsBtwThem.topRigth = { whois: nbTop.whois, designation: nbTop.desc };
-        //}
-        //if (nbRight && nbBot && compareTiles (nbRight,nbBot)){
-        //    nbEqualsBtwThem.botRight = { whois: nbRight.whois , designation: nbRight.desc };
-        //}
-        //if (nbBot && nbLeft && compareTiles (nbBot,nbLeft)){
-        //    nbEqualsBtwThem.botLeft = { whois: nbBot.whois , designation: nbBot.desc };
-        //}
-        //if (nbLeft && nbTop && compareTiles (nbLeft,nbTop)){
-        //    nbEqualsBtwThem.topLeft = { whois: nbLeft.whois , designation: nbLeft.desc };
-        //}
         var sizeMaskBorder = 16;
         var rectJoin = "";
         var offsetx = 2;
@@ -442,7 +419,7 @@ function tileConstructSVG(coord, z_level, zinit) {
         var patchWidth = (256 - 2 * offsetx) / patchNbTiles;
         var patchHeight = 15;
         var deeplevel = currentTile.z + patchDepth;
-        var comparable = z_level === 3 && currentTile.z <= 14 && ((currentTile.z <= 5 && patchDepth <= 5) || (currentTile.z > 5 && patchDepth > 5));
+        var comparable = z_level > 1 && currentTile.z <= 14 && ((currentTile.z <= 4 && zinit <= 4) || (currentTile.z > 4 && zinit > 4));
         var deepx = void 0;
         var deepy = void 0;
         // right

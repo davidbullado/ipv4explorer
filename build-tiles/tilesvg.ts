@@ -492,36 +492,11 @@ function tileConstructSVG (coord, z_level, zinit) {
   
 
   if (z_level > 0 && getXYTile) {
+
     var {myNeighbors, myNeighborsEquals, nbEqualsBtwThem} = genMatrix (currentTile,zinit,false) ;
-
-    //var nbTop   = myNeighbors[0][1];
-    //var nbRight = myNeighbors[1][2];
-    //var nbBot   = myNeighbors[2][1];
-    //var nbLeft  = myNeighbors[1][0];
-
-    //var nbEqualsBtwThem = {
-    //    topRigth: null,
-    //    botRight: null,
-    //    botLeft: null,
-    //    topLeft: null
-    //}
-//
-    //if (nbTop && nbRight && compareTiles (nbTop,nbRight)){
-    //    nbEqualsBtwThem.topRigth = { whois: nbTop.whois, designation: nbTop.desc };
-    //}
-    //if (nbRight && nbBot && compareTiles (nbRight,nbBot)){
-    //    nbEqualsBtwThem.botRight = { whois: nbRight.whois , designation: nbRight.desc };
-    //}
-    //if (nbBot && nbLeft && compareTiles (nbBot,nbLeft)){
-    //    nbEqualsBtwThem.botLeft = { whois: nbBot.whois , designation: nbBot.desc };
-    //}
-    //if (nbLeft && nbTop && compareTiles (nbLeft,nbTop)){
-    //    nbEqualsBtwThem.topLeft = { whois: nbLeft.whois , designation: nbLeft.desc };
-    //}
 
     const sizeMaskBorder = 16;
     
-
     var rectJoin = "";
     const offsetx = 2 ;
     const patchDepth = 2 ;
@@ -529,7 +504,7 @@ function tileConstructSVG (coord, z_level, zinit) {
     const patchWidth = (256-2*offsetx) / patchNbTiles ;
     const patchHeight = 15;
     const deeplevel = currentTile.z + patchDepth ;
-    const comparable = z_level === 3 && currentTile.z <= 14 && ((currentTile.z <= 5 && patchDepth <= 5) || (currentTile.z > 5 && patchDepth > 5));
+    const comparable = z_level > 1 && currentTile.z <= 14 && ((currentTile.z <= 4 && zinit <= 4) || (currentTile.z > 4 && zinit > 4));
     let deepx;
     let deepy;
 
@@ -556,6 +531,7 @@ function tileConstructSVG (coord, z_level, zinit) {
         }
       }
     }
+
     // left
     if (myNeighborsEquals[1][0]) {
       rect.x-=sizeMaskBorder;
@@ -583,7 +559,6 @@ function tileConstructSVG (coord, z_level, zinit) {
       rect.y-=sizeMaskBorder;
       rect.height+=sizeMaskBorder;
     } else {
-      
       // big tile level
       if (comparable  ) {
         deepx = currentTile.x * patchNbTiles ;
