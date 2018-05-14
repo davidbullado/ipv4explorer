@@ -491,7 +491,7 @@ function tileConstructSVG (coord, z_level, zinit) {
   } ;
   
 
-  if (z_level > 0 && getXYTile) {
+  if (z_level > 0) {
 
     var {myNeighbors, myNeighborsEquals, nbEqualsBtwThem} = genMatrix (currentTile,zinit,false) ;
 
