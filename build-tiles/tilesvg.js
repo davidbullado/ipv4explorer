@@ -392,6 +392,32 @@ function genMatrix(currentTile, zinit, bigTile) {
     return { myNeighbors: myNeighbors, myNeighborsEquals: myNeighborsEquals, nbEqualsBtwThem: nbEqualsBtwThem };
 }
 /**
+ * Split a text into multiple lines given maximum length
+ * @param myText Text to be cuted
+ * @param maxLength Max length of a line
+ */
+exports.splitTextMultipleLines = function (myText, maxLength) {
+    var result = new Array();
+    if (myText.length > maxLength) {
+        var myStrings = myText.split(" ");
+        var i = 0;
+        do {
+            var myLine = "";
+            myLine = myStrings[i];
+            i++;
+            while (myLine.length < maxLength && i < myStrings.length) {
+                myLine += " " + myStrings[i];
+                i++;
+            }
+            result.push(myLine);
+        } while (i < myStrings.length);
+    }
+    else {
+        result.push(myText);
+    }
+    return result;
+};
+/**
  *
  * @param getXYTile
  * @param compareTo
@@ -438,11 +464,11 @@ function tileConstructSVG(coord, z_level, zinit) {
             if (comparable) {
                 deepx = (currentTile.x + 1) * patchNbTiles;
                 deepy = currentTile.y * patchNbTiles;
-                for (var i = 0; i < patchNbTiles; i++) {
-                    var tile1 = getXYTile({ x: deepx, y: deepy + i, z: deeplevel });
-                    var tile2 = getXYTile({ x: deepx - 1, y: deepy + i, z: deeplevel });
+                for (var i_1 = 0; i_1 < patchNbTiles; i_1++) {
+                    var tile1 = getXYTile({ x: deepx, y: deepy + i_1, z: deeplevel });
+                    var tile2 = getXYTile({ x: deepx - 1, y: deepy + i_1, z: deeplevel });
                     if (tile1 && tile2 && compareTiles(tile1, tile2)) {
-                        rectJoin += "\n            <rect x=\"" + (256 - 15) + "\" y=\"" + (offsetx + i * patchWidth) + "\" width=\"" + patchHeight + "\" height=\"" + patchWidth + "\" fill=\"" + fillRect + "\" />\n            <line stroke-dasharray=\"2,2\" x1=\"255\" y1=\"" + (offsetx + i * patchWidth) + "\" x2=\"255\" y2=\"" + (offsetx + (i + 1) * patchWidth) + "\" />\n            ";
+                        rectJoin += "\n            <rect x=\"" + (256 - 15) + "\" y=\"" + (offsetx + i_1 * patchWidth) + "\" width=\"" + patchHeight + "\" height=\"" + patchWidth + "\" fill=\"" + fillRect + "\" />\n            <line stroke-dasharray=\"2,2\" x1=\"255\" y1=\"" + (offsetx + i_1 * patchWidth) + "\" x2=\"255\" y2=\"" + (offsetx + (i_1 + 1) * patchWidth) + "\" />\n            ";
                     }
                 }
             }
@@ -457,11 +483,11 @@ function tileConstructSVG(coord, z_level, zinit) {
             if (comparable) {
                 deepx = currentTile.x * patchNbTiles;
                 deepy = currentTile.y * patchNbTiles;
-                for (var i = 0; i < patchNbTiles; i++) {
-                    var tile1 = getXYTile({ x: deepx, y: deepy + i, z: deeplevel });
-                    var tile2 = getXYTile({ x: deepx - 1, y: deepy + i, z: deeplevel });
+                for (var i_2 = 0; i_2 < patchNbTiles; i_2++) {
+                    var tile1 = getXYTile({ x: deepx, y: deepy + i_2, z: deeplevel });
+                    var tile2 = getXYTile({ x: deepx - 1, y: deepy + i_2, z: deeplevel });
                     if (tile1 && tile2 && compareTiles(tile1, tile2)) {
-                        rectJoin += "\n            <rect x=\"0\" y=\"" + (offsetx + i * patchWidth) + "\" width=\"" + patchHeight + "\" height=\"" + patchWidth + "\" fill=\"" + fillRect + "\" />\n            \n            ";
+                        rectJoin += "\n            <rect x=\"0\" y=\"" + (offsetx + i_2 * patchWidth) + "\" width=\"" + patchHeight + "\" height=\"" + patchWidth + "\" fill=\"" + fillRect + "\" />\n            \n            ";
                     }
                 }
             }
@@ -476,11 +502,11 @@ function tileConstructSVG(coord, z_level, zinit) {
             if (comparable) {
                 deepx = currentTile.x * patchNbTiles;
                 deepy = currentTile.y * patchNbTiles;
-                for (var i = 0; i < patchNbTiles; i++) {
-                    var tile1 = getXYTile({ x: deepx + i, y: deepy - 1, z: deeplevel });
-                    var tile2 = getXYTile({ x: deepx + i, y: deepy, z: deeplevel });
+                for (var i_3 = 0; i_3 < patchNbTiles; i_3++) {
+                    var tile1 = getXYTile({ x: deepx + i_3, y: deepy - 1, z: deeplevel });
+                    var tile2 = getXYTile({ x: deepx + i_3, y: deepy, z: deeplevel });
                     if (tile1 && tile2 && compareTiles(tile1, tile2)) {
-                        rectJoin += "\n            <rect x=\"" + (offsetx + patchWidth * i) + "\" y=\"0\" width=\"" + patchWidth + "\" height=\"" + patchHeight + "\" fill=\"" + fillRect + "\" />\n            ";
+                        rectJoin += "\n            <rect x=\"" + (offsetx + patchWidth * i_3) + "\" y=\"0\" width=\"" + patchWidth + "\" height=\"" + patchHeight + "\" fill=\"" + fillRect + "\" />\n            ";
                     }
                 }
             }
@@ -495,11 +521,11 @@ function tileConstructSVG(coord, z_level, zinit) {
             if (comparable) {
                 deepx = currentTile.x * patchNbTiles;
                 deepy = (currentTile.y + 1) * patchNbTiles;
-                for (var i = 0; i < patchNbTiles; i++) {
-                    var tile1 = getXYTile({ x: deepx + i, y: deepy - 1, z: deeplevel });
-                    var tile2 = getXYTile({ x: deepx + i, y: deepy, z: deeplevel });
+                for (var i_4 = 0; i_4 < patchNbTiles; i_4++) {
+                    var tile1 = getXYTile({ x: deepx + i_4, y: deepy - 1, z: deeplevel });
+                    var tile2 = getXYTile({ x: deepx + i_4, y: deepy, z: deeplevel });
                     if (tile1 && tile2 && compareTiles(tile1, tile2)) {
-                        rectJoin += "\n            <rect x=\"" + (offsetx + patchWidth * i) + "\" y=\"" + (256 - 15) + "\" width=\"" + patchWidth + "\" height=\"" + patchHeight + "\" fill=\"" + fillRect + "\" />\n            <line stroke-dasharray=\"2,2\" x1=\"" + (offsetx + i * patchWidth) + "\" y1=\"255\" x2=\"" + (offsetx + (i + 1) * patchWidth) + "\" y2=\"255\" />\n            ";
+                        rectJoin += "\n            <rect x=\"" + (offsetx + patchWidth * i_4) + "\" y=\"" + (256 - 15) + "\" width=\"" + patchWidth + "\" height=\"" + patchHeight + "\" fill=\"" + fillRect + "\" />\n            <line stroke-dasharray=\"2,2\" x1=\"" + (offsetx + i_4 * patchWidth) + "\" y1=\"255\" x2=\"" + (offsetx + (i_4 + 1) * patchWidth) + "\" y2=\"255\" />\n            ";
                     }
                 }
             }
@@ -507,11 +533,47 @@ function tileConstructSVG(coord, z_level, zinit) {
         var _b = genMatrix(currentTile, zinit, true), myNeighbors = _b.myNeighbors, myNeighborsEquals = _b.myNeighborsEquals, nbEqualsBtwThem = _b.nbEqualsBtwThem;
         join = genJoin(myNeighborsEquals, nbEqualsBtwThem, fillRect);
     }
-    if (designation.length > 40) {
-        //designation.split(" ")
-        // for 
+    var arrDesign = exports.splitTextMultipleLines(designation, 25);
+    var designationBloc = "";
+    var designationStartY = 190;
+    var designationLineHeight = 15;
+    var designationLines = 0;
+    for (var i = 0; i < arrDesign.length; i++) {
+        var result = "<text text-anchor=\"middle\" x=\"128\" y=\"" + (designationStartY + designationLineHeight * (i)) + "\" font-size=\"13\" fill=\"" + textcolor + "\">\n    <![CDATA[" + arrDesign[i] + "]]>\n    </text>";
+        designationBloc += result;
     }
-    return "\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"190\" font-size=\"13\" fill=\"" + textcolor + "\">\n  <![CDATA[" + designation + "]]>\n  </text>\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + rectJoin + "\n  " + stroke + "\n  \n";
+    /*
+      if (arrDesign.length > 1){
+       // designation = designation.replace(" "," ");
+        //let des = designation.split(" ");
+        let totLength = 0;
+        let result = `<text text-anchor="middle" x="128" y="${designationStartY}" font-size="13" fill="${textcolor}">
+        <![CDATA[`;
+        for (var i=0; i < arrDesign.length; i++){
+          let newTot = totLength+des[i].length;
+          if (newTot > 28){
+            result += `]]>
+            </text><text text-anchor="middle" x="128" y="${designationStartY+designationLineHeight*(designationLines+1)}" font-size="13" fill="${textcolor}">
+            <![CDATA[`;
+            totLength = 0;
+            designationLines++;
+          } else {
+            result += " ";
+            totLength = newTot+1;
+          }
+          result += des[i] ;
+        }
+        result += `]]>
+        </text>`;
+        designationBloc = result;
+    
+      } else {
+        designationBloc = `<text text-anchor="middle" x="128" y="${designationStartY}" font-size="13" fill="${textcolor}">
+        <![CDATA[${designation}]]>
+        </text>`;
+      }
+      */
+    return "\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  " + designationBloc + "\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + rectJoin + "\n  " + stroke + "\n  \n";
 }
 function tileConstruct(coord) {
     var svgcontent;

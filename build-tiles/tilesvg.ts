@@ -8,28 +8,6 @@ function getColorFromWhois ({whois, designation}) {
   }
   var fillRect = ""; 
   
-  //switch (whois) {
-  //  case 'IANA':
-  //    fillRect="#f0f0f0";
-  //    break;
-  //  case 'APNIC':
-  //    fillRect="#FFDDDD";
-  //    break;
-  //  case 'RIPE':
-  //    fillRect="#BCD9D9";
-  //    break;
-  //  case 'AFRINIC':
-  //    fillRect="#CCECCC";
-  //    break;
-  //  case 'ARIN':
-  //    fillRect="#FFECDD";
-  //    break;
-  //  case 'LACNIC':
-  //    fillRect="#C9BAD7";
-  //    break;
-  //  default:
-  //   fillRect="#FFFFFF";
-  //}
   switch (whois) {
     case 'IANA':
       fillRect="#f0f0f0";
@@ -467,6 +445,36 @@ function genMatrix (currentTile, zinit, bigTile){
 }
 
 /**
+ * Split a text into multiple lines given maximum length
+ * @param myText Text to be cuted
+ * @param maxLength Max length of a line
+ */
+export const splitTextMultipleLines = (myText, maxLength) => {
+  const result = new Array();
+
+  if ( myText.length > maxLength ) {
+    
+    const myStrings = myText.split(" ");
+    let i = 0;
+
+    do {
+      let myLine = "";
+      myLine = myStrings[i] ;
+      i++;
+      while (myLine.length < maxLength && i < myStrings.length) {          
+        myLine += " " + myStrings[i] ;
+        i++;
+      }
+      result.push(myLine);
+    } while (i < myStrings.length) ;
+
+  } else {
+    result.push(myText);
+  }
+  return result;
+}
+
+/**
  * 
  * @param getXYTile 
  * @param compareTo 
@@ -481,7 +489,7 @@ function tileConstructSVG (coord, z_level, zinit) {
 
   const currentTile = getXYTile(coord);
   const whois       = currentTile.whois;
-  const designation = currentTile.desc;
+  let   designation = currentTile.desc;
   const date        = currentTile.date;
 
   const fillRect = getColorFromWhois({whois,designation});
@@ -612,9 +620,17 @@ function tileConstructSVG (coord, z_level, zinit) {
 
   }
 
-  if (designation.length > 40){
-    //designation.split(" ")
-   // for 
+
+  let arrDesign = splitTextMultipleLines(designation,25);
+  let designationBloc = "";
+  let designationStartY = 190;
+  let designationLineHeight = 15;
+
+  for (var i=0; i < arrDesign.length; i++ ){
+    let result = `<text text-anchor="middle" x="128" y="${designationStartY+designationLineHeight*(i)}" font-size="13" fill="${textcolor}">
+    <![CDATA[${arrDesign[i]}]]>
+    </text>`;
+    designationBloc += result;
   }
 
   return `
@@ -629,9 +645,7 @@ function tileConstructSVG (coord, z_level, zinit) {
   <text text-anchor="middle" x="128" y="132" font-size="25" fill="${textcolor}">
     ${currentTile.ip}
   </text>
-  <text text-anchor="middle" x="128" y="190" font-size="13" fill="${textcolor}">
-  <![CDATA[${designation}]]>
-  </text>
+  ${designationBloc}
   <text text-anchor="end" x="240" y="240" font-size="16" fill="${textcolor}">
     ${date}
   </text>
