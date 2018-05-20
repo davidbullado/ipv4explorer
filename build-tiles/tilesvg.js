@@ -9,28 +9,6 @@ function getColorFromWhois(_a) {
         designation = "void";
     }
     var fillRect = "";
-    //switch (whois) {
-    //  case 'IANA':
-    //    fillRect="#f0f0f0";
-    //    break;
-    //  case 'APNIC':
-    //    fillRect="#FFDDDD";
-    //    break;
-    //  case 'RIPE':
-    //    fillRect="#BCD9D9";
-    //    break;
-    //  case 'AFRINIC':
-    //    fillRect="#CCECCC";
-    //    break;
-    //  case 'ARIN':
-    //    fillRect="#FFECDD";
-    //    break;
-    //  case 'LACNIC':
-    //    fillRect="#C9BAD7";
-    //    break;
-    //  default:
-    //   fillRect="#FFFFFF";
-    //}
     switch (whois) {
         case 'IANA':
             fillRect = "#f0f0f0";
@@ -160,41 +138,77 @@ function moreThanOneCountry(ipValue, zoom) {
     }
     return moreThanOne;
 }
-var getTileInfo = function (ipTile, point) {
-    if (ipTile) {
-        var strIP = ipTile.toString();
-        // single ip scale
-        if (point.z < 16) {
-            strIP += "/" + (point.z * 2) + "\n";
-        }
-        // list all Regional Internet Registries where my ip belong
-        var resWhois = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
-        var res = { x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP };
-        if (point.z > 5) {
-            res.desc = getCountries(ipTile.pVal, point.z);
-            res.date = "";
-        }
-        else {
-            //res.desc = resWhois[0].designation ;
-            res.date = resWhois[0].date;
-            var mapRIR_1 = new Map();
-            resWhois.forEach(function (r) {
-                mapRIR_1.set(r.designation, r.date);
-            });
-            // get the designation
-            var arrRIRdes = Array.from(mapRIR_1.keys());
-            // concat them into csv with a trailing ... if more than 4 designation.
-            res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR_1.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
-            if (mapRIR_1.size > 1) {
-                res.date = "";
-            }
-        }
-        return res;
-    }
-    else {
+function getXYZTileInfo(point, ipWhois) {
+    var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
+    if (!ipTile) {
         return null;
     }
-};
+    var strIP = ipTile.toString();
+    // single ip scale
+    if (point.z < 16) {
+        strIP += "/" + (point.z * 2) + "\n";
+    }
+    // list all Regional Internet Registries where my ip belong
+    var resWhois = ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
+    var res = { x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP };
+    if (point.z > 5) {
+        res.desc = getCountries(ipTile.pVal, point.z);
+        res.date = "";
+    }
+    else {
+        //res.desc = resWhois[0].designation ;
+        res.date = resWhois[0].date;
+        var mapRIR_1 = new Map();
+        resWhois.forEach(function (r) {
+            mapRIR_1.set(r.designation, r.date);
+        });
+        // get the designation
+        var arrRIRdes = Array.from(mapRIR_1.keys());
+        // concat them into csv with a trailing ... if more than 4 designation.
+        res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR_1.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
+        if (mapRIR_1.size > 1) {
+            res.date = "";
+        }
+    }
+    return res;
+}
+exports.getXYZTileInfo = getXYZTileInfo;
+function getXYTile(point) {
+    var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
+    if (!ipTile) {
+        return null;
+    }
+    var strIP = ipTile.toString();
+    // single ip scale
+    if (point.z < 16) {
+        strIP += "/" + (point.z * 2) + "\n";
+    }
+    // list all Regional Internet Registries where my ip belong
+    var resWhois = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
+    var res = { x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP };
+    if (point.z > 5) {
+        res.desc = getCountries(ipTile.pVal, point.z);
+        res.date = "";
+    }
+    else {
+        //res.desc = resWhois[0].designation ;
+        res.date = resWhois[0].date;
+        var mapRIR_2 = new Map();
+        resWhois.forEach(function (r) {
+            mapRIR_2.set(r.designation, r.date);
+        });
+        // get the designation
+        var arrRIRdes = Array.from(mapRIR_2.keys());
+        // concat them into csv with a trailing ... if more than 4 designation.
+        res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR_2.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
+        if (mapRIR_2.size > 1) {
+            res.date = "";
+        }
+    }
+    return res;
+}
+exports.getXYTile = getXYTile;
+;
 function isTileInfoMoreThanOne(point) {
     var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
     if (ipTile) {
@@ -216,17 +230,6 @@ function isTileInfoMoreThanOne(point) {
     else {
         return false;
     }
-}
-;
-function getXYTile(point) {
-    var ipTile;
-    var maxCoord = Math.pow(2, point.z);
-    // out of bounds ?
-    if (point.x < maxCoord && point.y < maxCoord) {
-        ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
-        return getTileInfo(ipTile, point);
-    }
-    return null;
 }
 ;
 function compareTiles(tile1, tile2) {
@@ -537,42 +540,10 @@ function tileConstructSVG(coord, z_level, zinit) {
     var designationBloc = "";
     var designationStartY = 190;
     var designationLineHeight = 15;
-    var designationLines = 0;
     for (var i = 0; i < arrDesign.length; i++) {
         var result = "<text text-anchor=\"middle\" x=\"128\" y=\"" + (designationStartY + designationLineHeight * (i)) + "\" font-size=\"13\" fill=\"" + textcolor + "\">\n    <![CDATA[" + arrDesign[i] + "]]>\n    </text>";
         designationBloc += result;
     }
-    /*
-      if (arrDesign.length > 1){
-       // designation = designation.replace(" "," ");
-        //let des = designation.split(" ");
-        let totLength = 0;
-        let result = `<text text-anchor="middle" x="128" y="${designationStartY}" font-size="13" fill="${textcolor}">
-        <![CDATA[`;
-        for (var i=0; i < arrDesign.length; i++){
-          let newTot = totLength+des[i].length;
-          if (newTot > 28){
-            result += `]]>
-            </text><text text-anchor="middle" x="128" y="${designationStartY+designationLineHeight*(designationLines+1)}" font-size="13" fill="${textcolor}">
-            <![CDATA[`;
-            totLength = 0;
-            designationLines++;
-          } else {
-            result += " ";
-            totLength = newTot+1;
-          }
-          result += des[i] ;
-        }
-        result += `]]>
-        </text>`;
-        designationBloc = result;
-    
-      } else {
-        designationBloc = `<text text-anchor="middle" x="128" y="${designationStartY}" font-size="13" fill="${textcolor}">
-        <![CDATA[${designation}]]>
-        </text>`;
-      }
-      */
     return "\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  " + designationBloc + "\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + rectJoin + "\n  " + stroke + "\n  \n";
 }
 function tileConstruct(coord) {
