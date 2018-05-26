@@ -158,44 +158,86 @@ function moreThanOneCountry(ipValue: number, zoom: number) {
   return moreThanOne ;
 }
 
-var getTileInfo = (ipTile: IPv4, point) => {
-  if (ipTile) {
-      
-      let strIP: string = ipTile.toString();
-      // single ip scale
-      if (point.z < 16) {
-          strIP += "/" + (point.z * 2) + "\n";
-      }
-      // list all Regional Internet Registries where my ip belong
-      const resWhois = ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal } );
-      let res= {x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP};
-      
-      if ( point.z > 5 ) {
-          res.desc = getCountries(ipTile.pVal,point.z) ;
-          res.date = "";
-      } else {
-          //res.desc = resWhois[0].designation ;
-          res.date = resWhois[0].date;
 
-          const mapRIR = new Map();
-          resWhois.forEach((r) => {
-            mapRIR.set(r.designation, r.date);
-          });
-          // get the designation
-          const arrRIRdes = Array.from(mapRIR.keys());
-          // concat them into csv with a trailing ... if more than 4 designation.
-          res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
-          if (mapRIR.size > 1) {
-            res.date = "";
-          }
+export function getXYZTileInfo (point,ipWhois){
+  const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,point.z);
 
-      }
-
-      return res;
-
-  } else {
-      return null;
+  if (!ipTile) {
+    return null;
   }
+
+  let strIP: string = ipTile.toString();
+  // single ip scale
+  if (point.z < 16) {
+      strIP += "/" + (point.z * 2) + "\n";
+  }
+  // list all Regional Internet Registries where my ip belong
+  const resWhois = ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal } );
+  let res= {x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP};
+  
+  if ( point.z > 5 ) {
+      res.desc = getCountries(ipTile.pVal,point.z) ;
+      res.date = "";
+  } else {
+      //res.desc = resWhois[0].designation ;
+      res.date = resWhois[0].date;
+
+      const mapRIR = new Map();
+      resWhois.forEach((r) => {
+        mapRIR.set(r.designation, r.date);
+      });
+      // get the designation
+      const arrRIRdes = Array.from(mapRIR.keys());
+      // concat them into csv with a trailing ... if more than 4 designation.
+      res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
+      if (mapRIR.size > 1) {
+        res.date = "";
+      }
+
+  }
+
+  return res;
+}
+
+export function getXYTile (point) {
+
+  const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,point.z);
+
+  if (!ipTile) {
+    return null;
+  }
+
+  let strIP: string = ipTile.toString();
+  // single ip scale
+  if (point.z < 16) {
+      strIP += "/" + (point.z * 2) + "\n";
+  }
+  // list all Regional Internet Registries where my ip belong
+  const resWhois = ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal } );
+  let res= {x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP};
+  
+  if ( point.z > 5 ) {
+      res.desc = getCountries(ipTile.pVal,point.z) ;
+      res.date = "";
+  } else {
+      //res.desc = resWhois[0].designation ;
+      res.date = resWhois[0].date;
+
+      const mapRIR = new Map();
+      resWhois.forEach((r) => {
+        mapRIR.set(r.designation, r.date);
+      });
+      // get the designation
+      const arrRIRdes = Array.from(mapRIR.keys());
+      // concat them into csv with a trailing ... if more than 4 designation.
+      res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
+      if (mapRIR.size > 1) {
+        res.date = "";
+      }
+
+  }
+
+  return res;
 };
 function isTileInfoMoreThanOne (point) {
   const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,point.z);
@@ -217,16 +259,7 @@ function isTileInfoMoreThanOne (point) {
       return false;
   }
 };
-function getXYTile (point) {
-  let ipTile: IPv4;
-  const maxCoord: number = Math.pow(2,point.z);
-  // out of bounds ?
-  if (point.x < maxCoord && point.y < maxCoord) {
-    ipTile = getIPFromXYZ(point.x,point.y,point.z);
-    return getTileInfo(ipTile, point);
-  }
-  return null;
-};
+
 function compareTiles (tile1, tile2) {
   return tile1.desc === tile2.desc && tile1.whois === tile2.whois ;
 };

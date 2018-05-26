@@ -138,41 +138,77 @@ function moreThanOneCountry(ipValue, zoom) {
     }
     return moreThanOne;
 }
-var getTileInfo = function (ipTile, point) {
-    if (ipTile) {
-        var strIP = ipTile.toString();
-        // single ip scale
-        if (point.z < 16) {
-            strIP += "/" + (point.z * 2) + "\n";
-        }
-        // list all Regional Internet Registries where my ip belong
-        var resWhois = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
-        var res = { x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP };
-        if (point.z > 5) {
-            res.desc = getCountries(ipTile.pVal, point.z);
-            res.date = "";
-        }
-        else {
-            //res.desc = resWhois[0].designation ;
-            res.date = resWhois[0].date;
-            var mapRIR_1 = new Map();
-            resWhois.forEach(function (r) {
-                mapRIR_1.set(r.designation, r.date);
-            });
-            // get the designation
-            var arrRIRdes = Array.from(mapRIR_1.keys());
-            // concat them into csv with a trailing ... if more than 4 designation.
-            res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR_1.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
-            if (mapRIR_1.size > 1) {
-                res.date = "";
-            }
-        }
-        return res;
-    }
-    else {
+function getXYZTileInfo(point, ipWhois) {
+    var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
+    if (!ipTile) {
         return null;
     }
-};
+    var strIP = ipTile.toString();
+    // single ip scale
+    if (point.z < 16) {
+        strIP += "/" + (point.z * 2) + "\n";
+    }
+    // list all Regional Internet Registries where my ip belong
+    var resWhois = ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
+    var res = { x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP };
+    if (point.z > 5) {
+        res.desc = getCountries(ipTile.pVal, point.z);
+        res.date = "";
+    }
+    else {
+        //res.desc = resWhois[0].designation ;
+        res.date = resWhois[0].date;
+        var mapRIR_1 = new Map();
+        resWhois.forEach(function (r) {
+            mapRIR_1.set(r.designation, r.date);
+        });
+        // get the designation
+        var arrRIRdes = Array.from(mapRIR_1.keys());
+        // concat them into csv with a trailing ... if more than 4 designation.
+        res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR_1.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
+        if (mapRIR_1.size > 1) {
+            res.date = "";
+        }
+    }
+    return res;
+}
+exports.getXYZTileInfo = getXYZTileInfo;
+function getXYTile(point) {
+    var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
+    if (!ipTile) {
+        return null;
+    }
+    var strIP = ipTile.toString();
+    // single ip scale
+    if (point.z < 16) {
+        strIP += "/" + (point.z * 2) + "\n";
+    }
+    // list all Regional Internet Registries where my ip belong
+    var resWhois = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
+    var res = { x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP };
+    if (point.z > 5) {
+        res.desc = getCountries(ipTile.pVal, point.z);
+        res.date = "";
+    }
+    else {
+        //res.desc = resWhois[0].designation ;
+        res.date = resWhois[0].date;
+        var mapRIR_2 = new Map();
+        resWhois.forEach(function (r) {
+            mapRIR_2.set(r.designation, r.date);
+        });
+        // get the designation
+        var arrRIRdes = Array.from(mapRIR_2.keys());
+        // concat them into csv with a trailing ... if more than 4 designation.
+        res.desc = arrRIRdes.slice(0, 4).join(", ") + (mapRIR_2.size > 4 ? ", " + arrRIRdes[4] + ", ..." : "");
+        if (mapRIR_2.size > 1) {
+            res.date = "";
+        }
+    }
+    return res;
+}
+exports.getXYTile = getXYTile;
+;
 function isTileInfoMoreThanOne(point) {
     var ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
     if (ipTile) {
@@ -194,17 +230,6 @@ function isTileInfoMoreThanOne(point) {
     else {
         return false;
     }
-}
-;
-function getXYTile(point) {
-    var ipTile;
-    var maxCoord = Math.pow(2, point.z);
-    // out of bounds ?
-    if (point.x < maxCoord && point.y < maxCoord) {
-        ipTile = index_1.getIPFromXYZ(point.x, point.y, point.z);
-        return getTileInfo(ipTile, point);
-    }
-    return null;
 }
 ;
 function compareTiles(tile1, tile2) {

@@ -20,8 +20,12 @@ function getIpVal(x: number, y: number, z: number): number {
     }
     return ipval;
 }
-export function getIPFromXYZ(x, y, z) {
-
+export function getIPFromXYZ(x: number, y: number, z: number) {
+    const maxCoord: number = Math.pow(2,z);
+    // out of bounds ?
+    if (x >= maxCoord || y >= maxCoord) {
+        return null;
+    }
     let ipval: number = 0;
     const point: { x: number, y: number } = { x: 0, y: 0 };
 
