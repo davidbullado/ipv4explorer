@@ -9,28 +9,6 @@ function getColorFromWhois(_a) {
         designation = "void";
     }
     var fillRect = "";
-    //switch (whois) {
-    //  case 'IANA':
-    //    fillRect="#f0f0f0";
-    //    break;
-    //  case 'APNIC':
-    //    fillRect="#FFDDDD";
-    //    break;
-    //  case 'RIPE':
-    //    fillRect="#BCD9D9";
-    //    break;
-    //  case 'AFRINIC':
-    //    fillRect="#CCECCC";
-    //    break;
-    //  case 'ARIN':
-    //    fillRect="#FFECDD";
-    //    break;
-    //  case 'LACNIC':
-    //    fillRect="#C9BAD7";
-    //    break;
-    //  default:
-    //   fillRect="#FFFFFF";
-    //}
     switch (whois) {
         case 'IANA':
             fillRect = "#f0f0f0";
@@ -537,42 +515,10 @@ function tileConstructSVG(coord, z_level, zinit) {
     var designationBloc = "";
     var designationStartY = 190;
     var designationLineHeight = 15;
-    var designationLines = 0;
     for (var i = 0; i < arrDesign.length; i++) {
         var result = "<text text-anchor=\"middle\" x=\"128\" y=\"" + (designationStartY + designationLineHeight * (i)) + "\" font-size=\"13\" fill=\"" + textcolor + "\">\n    <![CDATA[" + arrDesign[i] + "]]>\n    </text>";
         designationBloc += result;
     }
-    /*
-      if (arrDesign.length > 1){
-       // designation = designation.replace(" "," ");
-        //let des = designation.split(" ");
-        let totLength = 0;
-        let result = `<text text-anchor="middle" x="128" y="${designationStartY}" font-size="13" fill="${textcolor}">
-        <![CDATA[`;
-        for (var i=0; i < arrDesign.length; i++){
-          let newTot = totLength+des[i].length;
-          if (newTot > 28){
-            result += `]]>
-            </text><text text-anchor="middle" x="128" y="${designationStartY+designationLineHeight*(designationLines+1)}" font-size="13" fill="${textcolor}">
-            <![CDATA[`;
-            totLength = 0;
-            designationLines++;
-          } else {
-            result += " ";
-            totLength = newTot+1;
-          }
-          result += des[i] ;
-        }
-        result += `]]>
-        </text>`;
-        designationBloc = result;
-    
-      } else {
-        designationBloc = `<text text-anchor="middle" x="128" y="${designationStartY}" font-size="13" fill="${textcolor}">
-        <![CDATA[${designation}]]>
-        </text>`;
-      }
-      */
     return "\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  " + designationBloc + "\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + rectJoin + "\n  " + stroke + "\n  \n";
 }
 function tileConstruct(coord) {
