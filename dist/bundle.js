@@ -209,8 +209,11 @@ function query(ip, callback) {
 }
 mymap.on("click", onMapClick);
 var myip = index_1.IPv4.newIPv4FromString(document.getElementById("ip").innerText);
-L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
-    .bindPopup("You are here.<br/>" + myip).openPopup();
+console.log("U r here");
+window.onload = function () {
+    L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
+        .bindPopup("You are here.<br/>" + myip).openPopup();
+};
 
 
 /***/ }),
@@ -378,7 +381,7 @@ exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader
 
 
 // module
-exports.push([module.i, "html, body {\r\n    margin: 0;\r\n    padding: 0;\r\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\r\n    background-color: black;\r\n}\r\n\r\nhtml, body, #mapid {\r\n    height: 100%;\r\n    width: 100vw;\r\n}\r\n\r\na {\r\n    color: #00B7FF;\r\n}\r\n\r\n#mapid {\r\n\tbackground-color: black;\r\n\tposition: static !important;\r\n}\r\n\r\n#ip {\r\n    display: none;\r\n}\r\n\r\n.whois {\r\n    max-height:200px;\r\n    white-space: pre;\r\n    overflow:scroll;\r\n}", ""]);
+exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n#ip {\n    display: none;\n}\n\n.whois {\n    max-height:200px;\n    white-space: pre;\n    overflow:scroll;\n}", ""]);
 
 // exports
 

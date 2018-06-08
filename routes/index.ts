@@ -5,6 +5,19 @@ import express = require('express');
 
 const router = express.Router();
 
+
+function myIp(req) {
+    const ips = req.header('x-forwarded-for')  ;
+    const tabIp = ips.split(', ') ;
+    for (let i=0; i < tabIp.length; i++){
+        if (req.header('x-real-ip') !== tabIp[i]) {
+            return tabIp[i] ;
+        }
+    }
+    return req.connection.remoteAddress;
+}
+
+
 router.get('/', (req: express.Request, res: express.Response) => {
     /*
     let renderIndex = () => res.render('index', { title: 'IPv4 Explorer', myip: req.header('x-forwarded-for') || req.connection.remoteAddress });
@@ -17,14 +30,14 @@ router.get('/', (req: express.Request, res: express.Response) => {
         renderIndex();
     }
     */
-    res.render('index', { title: 'IPv4', myip: req.header('x-real-ip') || req.connection.remoteAddress });
+    res.render('index', { title: 'IPv4', myip: myIp(req)});
     
 });
 
 router.get('/ip', (req: express.Request, res: express.Response) => {
     // thanks https://www.hacksparrow.com/node-js-get-ip-address.html
     console.log(JSON.stringify(req.headers));
-    res.send(req.header('x-real-ip') || req.connection.remoteAddress);
+    res.send(myIp(req));
 });
 
 export default router;

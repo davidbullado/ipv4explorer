@@ -108,5 +108,7 @@ mymap.on("click", onMapClick);
 
 let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
 
-L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
+window.onload = function () {
+    L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
     .bindPopup("You are here.<br/>" + myip).openPopup();
+}
