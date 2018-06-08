@@ -1,12 +1,15 @@
+import http2 = require('spdy');
 import debug = require("debug");
 import express = require("express");
 import path = require("path");
+import fs = require('fs');
 
 import routes from "./routes/index";
 import tiles from "./routes/tiles";
 import whois from "./routes/whois";
 
 import {loadData} from "./ip2lite";
+
 
 //Load data from csv
 loadData() ;
@@ -54,8 +57,22 @@ app.use((err: any, req, res, next) => {
     });
 });
 
-app.set('port', process.env.PORT || 3000);
 
-var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
-    debug('Express server listening on port ' + server.address().port);
-});
+
+var options = {
+    key: fs.readFileSync('./server.key'),
+    cert: fs.readFileSync('./server.crt')
+  }
+http2
+  .createServer(options, app)
+  .listen(3000, ()=>{
+    debug('Express server listening on port 3000');
+  }
+)
+/*
+    app.set('port', process.env.PORT || 3000);
+
+    var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
+        debug('Express server listening on port ' + server.address().port);
+    });
+*/

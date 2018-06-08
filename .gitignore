@@ -5,6 +5,9 @@ tiles_svg/
 *.js.map
 *.js
 
+server.key
+server.crt
+
 # User-specific files
 *.suo
 *.user

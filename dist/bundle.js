@@ -256,6 +256,11 @@ function getIpVal(x, y, z) {
     return ipval;
 }
 function getIPFromXYZ(x, y, z) {
+    var maxCoord = Math.pow(2, z);
+    // out of bounds ?
+    if (x >= maxCoord || y >= maxCoord) {
+        return null;
+    }
     var ipval = 0;
     var point = { x: 0, y: 0 };
     for (var i = z; i > 0; i--) {

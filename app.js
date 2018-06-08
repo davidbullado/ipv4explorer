@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var http2 = require("spdy");
 var debug = require("debug");
 var express = require("express");
 var path = require("path");
+var fs = require("fs");
 var index_1 = require("./routes/index");
 var tiles_1 = require("./routes/tiles");
 var whois_1 = require("./routes/whois");
@@ -44,8 +46,20 @@ app.use(function (err, req, res, next) {
         error: {}
     });
 });
-app.set('port', process.env.PORT || 3000);
-var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
-    debug('Express server listening on port ' + server.address().port);
+var options = {
+    key: fs.readFileSync('./server.key'),
+    cert: fs.readFileSync('./server.crt')
+};
+http2
+    .createServer(options, app)
+    .listen(3000, function () {
+    debug('Express server listening on port 3000');
 });
+/*
+    app.set('port', process.env.PORT || 3000);
+
+    var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
+        debug('Express server listening on port ' + server.address().port);
+    });
+*/ 
 //# sourceMappingURL=app.js.map
