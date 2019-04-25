@@ -7,7 +7,7 @@ var express = require("express");
 var router = express.Router();
 function myIp(req) {
     var ips = req.header('x-forwarded-for');
-    var tabIp = ips.split(', ');
+    var tabIp = ips ? ips.split(', ') : [];
     for (var i = 0; i < tabIp.length; i++) {
         if (req.header('x-real-ip') !== tabIp[i]) {
             return tabIp[i];

@@ -109,6 +109,23 @@ mymap.on("click", onMapClick);
 let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
 
 window.onload = function () {
-    L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
-    .bindPopup("You are here.<br/>" + myip).openPopup();
+    if (myip.toString() !== "0.0.0.0") {
+        L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
+        .bindPopup("You are here.<br/>" + myip).openPopup();
+    }
+}
+
+export function addMarkerForIP(IPString) {
+    let ip: IPv4 = IPv4.newIPv4FromString(IPString);
+    let latlng: L.LatLng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
+    //L.marker(latlng).addTo(mymap);
+    mymap.panTo(latlng);
+    mymap.setView(latlng, 16);
+
+    query(ip.toString(), function (whois) {
+        popup
+        .setLatLng(latlng)
+        .setContent('<div class="whois">'+whois+'</div>')
+        .openOn(mymap);
+    });
 }

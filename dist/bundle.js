@@ -1,3 +1,4 @@
+var ui =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -108,10 +109,15 @@ if(false) {}
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
 // CSS
 __webpack_require__(/*! ../css/main.css */ "./client/css/main.css");
 // JS
 __webpack_require__(/*! ./main */ "./client/javascripts/main.ts");
+var main_1 = __webpack_require__(/*! ./main */ "./client/javascripts/main.ts");
+exports.addMarkerForIP = main_1.addMarkerForIP;
 
 
 /***/ }),
@@ -209,11 +215,26 @@ function query(ip, callback) {
 }
 mymap.on("click", onMapClick);
 var myip = index_1.IPv4.newIPv4FromString(document.getElementById("ip").innerText);
-console.log("U r here");
 window.onload = function () {
-    L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
-        .bindPopup("You are here.<br/>" + myip).openPopup();
+    if (myip.toString() !== "0.0.0.0") {
+        L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
+            .bindPopup("You are here.<br/>" + myip).openPopup();
+    }
 };
+function addMarkerForIP(IPString) {
+    var ip = index_1.IPv4.newIPv4FromString(IPString);
+    var latlng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
+    //L.marker(latlng).addTo(mymap);
+    mymap.panTo(latlng);
+    mymap.setView(latlng, 16);
+    query(ip.toString(), function (whois) {
+        popup
+            .setLatLng(latlng)
+            .setContent('<div class="whois">' + whois + '</div>')
+            .openOn(mymap);
+    });
+}
+exports.addMarkerForIP = addMarkerForIP;
 
 
 /***/ }),
@@ -381,7 +402,7 @@ exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader
 
 
 // module
-exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n#ip {\n    display: none;\n}\n\n.whois {\n    max-height:200px;\n    white-space: pre;\n    overflow:scroll;\n}", ""]);
+exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n#ip {\n    display: none;\n}\n\n.whois {\n    max-height:200px;\n    white-space: pre;\n    overflow:scroll;\n}\n\n#search {\n    position: absolute;\n    z-index: 1000;\n    left: 50%;\n}\n#search input {\n    position: relative;\n    left: -50%;\n    text-align: center;\n}", ""]);
 
 // exports
 

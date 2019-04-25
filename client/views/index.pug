@@ -2,4 +2,6 @@ extends layout
 
 block content
   div#ip=myip
+  div#search
+    input(type='text' onchange='ui.addMarkerForIP(this.value)')
   div#mapid

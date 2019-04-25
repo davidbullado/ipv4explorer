@@ -8,7 +8,9 @@ module.exports = {
     filename: 'bundle.js',
     // Bundle absolute resource paths in the source-map,
     // so VSCode can match the source file.
-    devtoolModuleFilenameTemplate: '[absolute-resource-path]'
+    devtoolModuleFilenameTemplate: '[absolute-resource-path]',
+    libraryTarget: 'var',
+    library: 'ui'
   },
   resolve: {
     // Add '.ts' and '.tsx' as a resolvable extension.

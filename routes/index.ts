@@ -7,8 +7,8 @@ const router = express.Router();
 
 
 function myIp(req) {
-    const ips = req.header('x-forwarded-for')  ;
-    const tabIp = ips.split(', ') ;
+    const ips = req.header('x-forwarded-for') ;
+    const tabIp = ips ? ips.split(', ') : [] ;
     for (let i=0; i < tabIp.length; i++){
         if (req.header('x-real-ip') !== tabIp[i]) {
             return tabIp[i] ;

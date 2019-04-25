@@ -29,3 +29,14 @@ a {
     white-space: pre;
     overflow:scroll;
 }
+
+#search {
+    position: absolute;
+    z-index: 1000;
+    left: 50%;
+}
+#search input {
+    position: relative;
+    left: -50%;
+    text-align: center;
+}
