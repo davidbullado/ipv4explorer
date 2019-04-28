@@ -14,6 +14,11 @@ export interface IDataIP {
     countryCode: string;
     countryLabel: string;
 }
+export interface IDataIPASN {
+    ipRangeStart: IPv4;
+    ipRangeEnd: IPv4;
+    ASNName: string;
+}
 interface IWhois {
     ip: string,
     ipStart: number,
@@ -24,9 +29,11 @@ interface IWhois {
 }
 let ip2lite: {
     ipArray: IDataIP[],
+    ipArrayASN: IDataIPASN[],
     ipArrayIdx: number[],
+    ipArrayASNIdx: number[],
     ipWhois: IWhois[]
-} = { ipArray: null, ipArrayIdx: [], ipWhois: null };
+} = { ipArray: null, ipArrayASN:null, ipArrayIdx: [], ipArrayASNIdx: [], ipWhois: null };
 
 var processRow = (row) => {
     var extractDigit = new RegExp(/0*(\d+)/) ;
@@ -66,6 +73,7 @@ var processRow = (row) => {
 
 export function loadData() {
     var body ;
+    var asn;
 
     if (!fs.existsSync("./IP2LOCATION-LITE-DB1.CSV")){
         console.log("Download csv...");
@@ -74,6 +82,7 @@ export function loadData() {
     } else {
         body = fs.readFileSync("./IP2LOCATION-LITE-DB1.CSV").toString();
     }
+    asn = fs.readFileSync("./IP2LOCATION-LITE-ASN.CSV").toString();
 
     console.log("Parse csv...");
 
@@ -86,10 +95,22 @@ export function loadData() {
             }
         return ipRes;
     });
-
     // Index by end ip.
     ip2lite.ipArray.forEach(function (item) { ip2lite.ipArrayIdx.push(item.ipRangeEnd.pVal) });
-    console.log("Parse csv ok: "+ip2lite.ipArray.length);
+    console.log("Parse csv ip country ok: "+ip2lite.ipArray.length);
+
+    ip2lite.ipArrayASN = csvParseRows(asn, (row) => {
+        let ipRes: IDataIPASN = {
+                ipRangeStart: new IPv4(Number(row[0])),
+                ipRangeEnd: new IPv4(Number(row[1])),
+                ASNName: row[4]
+            }
+        return ipRes;
+    });
+    // Index by end ip.
+    ip2lite.ipArrayASN.forEach(function (item) { ip2lite.ipArrayASNIdx.push(item.ipRangeEnd.pVal) });
+    console.log("Parse csv ip asn ok: "+ip2lite.ipArrayASNIdx.length);
+
 
     console.log("Load: ipv4-address-space.csv");
     var buf = fs.readFileSync("./build-tiles/ipv4-address-space.csv");

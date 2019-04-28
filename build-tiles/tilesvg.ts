@@ -1,6 +1,7 @@
 import { IPv4, getIPFromXYZ } from "../ipv4/index";
 import { IDataIP, ip2lite } from "../ip2lite";
 import { bisectLeft } from "d3-array";
+import { IDataIPASN } from "../ip2lite/ip2lite";
 
 function getColorFromWhois ({whois, designation}) {
   if (!designation || designation === ""){
@@ -102,11 +103,22 @@ function filter(d) {
  * @param ipEnd last ip of a block
  */
 function getCountriesRange(ipStart: number, ipEnd: number): IDataIP[] {
+  return getCountriesRangeForIndex(ip2lite.ipArrayIdx, ip2lite.ipArray, ipStart, ipEnd);
+}
+function getASNsRange(ipStart: number, ipEnd: number): IDataIPASN[] {
+  return getCountriesRangeForIndex(ip2lite.ipArrayASNIdx, ip2lite.ipArrayASN, ipStart, ipEnd);
+}
+/**
+ * Get a slice of ip/country array
+ * @param ipStart first ip of a block
+ * @param ipEnd last ip of a block
+ */
+function getCountriesRangeForIndex(idx: number[], arr: any[], ipStart: number, ipEnd: number): any[] {
   // instead of doing an array.filter, which is time consuming,
   // we use bisect on an index.
-  const idLo = bisectLeft( ip2lite.ipArrayIdx, ipStart ) ;
-  const idHi = bisectLeft( ip2lite.ipArrayIdx, ipEnd ) ;
-  const myRange = ip2lite.ipArray.slice(idLo, idHi + 1);
+  const idLo = bisectLeft( idx, ipStart ) ;
+  const idHi = bisectLeft( idx, ipEnd ) ;
+  const myRange = arr.slice(idLo, idHi + 1);
 
   return myRange;
 }
@@ -118,6 +130,15 @@ function aggregateCountryRangeByLabel(myRange: IDataIP[]) {
       countries.set(r.countryCode, r.countryLabel);
   });
   return countries;
+}
+
+function aggregateASNRangeByLabel(myRange: IDataIPASN[]) {
+
+  const asns = new Map();
+  myRange.forEach((r) => {
+      asns.set(r.ASNName, r.ASNName);
+  });
+  return asns;
 }
 
 function getCountries(ipValue: number, zoom: number) {
@@ -137,6 +158,28 @@ function getCountries(ipValue: number, zoom: number) {
       const arrCountryCode = Array.from(m.keys());
       // concat them into csv with a trailing ... if more than 4 countries.
       res = arrCountryCode.slice(0, 4).join(", ") + (m.size > 4 ? ", " + arrCountryCode[4] + ", ..." : "");
+  }
+
+  return res;
+}
+
+function getASNs(ipValue: number, zoom: number): string {
+  let res: string = "";
+  let ipEnd: IPv4;
+
+  // get last ip of the block given zoom
+  ipEnd = (new IPv4(ipValue)).getLastIPMask(zoom * 2);
+
+  const m = aggregateASNRangeByLabel(getASNsRange(ipValue, ipEnd.pVal));
+
+  if ( m.size === 1 ) {
+      // get the full asn name
+      res = m.values().next().value;
+  } else {
+      // get the asn
+      const arrASN = Array.from(m.keys());
+      // concat them into csv with a trailing ... if more than 2 asn.
+      res = arrASN.slice(0, 1).join(", ") + (m.size > 2 ? ", +" + (m.size-1) +" ASNs ..." : "");
   }
 
   return res;
@@ -209,15 +252,16 @@ export function getXYTile (point) {
 
   let strIP: string = ipTile.toString();
   // single ip scale
-  if (point.z < 16) {
+  /*if (point.z < 16) {
       strIP += "/" + (point.z * 2) + "\n";
-  }
+  }*/
   // list all Regional Internet Registries where my ip belong
   const resWhois = ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal } );
-  let res= {x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP};
+  let res= {x: point.x, y: point.y, z: point.z, desc: null, asn: null, whois: resWhois[0].whois, date: null, ip: strIP, ipEnd: ipTile.getLastIPMask(point.z * 2).pString};
   
   if ( point.z > 5 ) {
       res.desc = getCountries(ipTile.pVal,point.z) ;
+      res.asn = getASNs(ipTile.pVal,point.z);
       res.date = "";
   } else {
       //res.desc = resWhois[0].designation ;
@@ -524,6 +568,7 @@ function tileConstructSVG (coord, z_level, zinit) {
   const whois       = currentTile.whois;
   let   designation = currentTile.desc;
   const date        = currentTile.date;
+  const asn         = currentTile.asn;
 
   const fillRect = getColorFromWhois({whois,designation});
 
@@ -653,18 +698,21 @@ function tileConstructSVG (coord, z_level, zinit) {
 
   }
 
-
-  let arrDesign = splitTextMultipleLines(designation,25);
-  let designationBloc = "";
-  let designationStartY = 190;
-  let designationLineHeight = 15;
-
-  for (var i=0; i < arrDesign.length; i++ ){
-    let result = `<text text-anchor="middle" x="128" y="${designationStartY+designationLineHeight*(i)}" font-size="13" fill="${textcolor}">
-    <![CDATA[${arrDesign[i]}]]>
-    </text>`;
-    designationBloc += result;
+  function customBloc (text, charTrunc, anchor, starty, startx, lineHeight, fontSize, textcolor) {
+    let arrDesign = splitTextMultipleLines(text,charTrunc);
+    let bloc = "";
+  
+    for (var i=0; i < arrDesign.length; i++ ){
+      let result = `<text text-anchor="${anchor}" x="${startx}" y="${starty+lineHeight*(i)}" font-size="${fontSize}" fill="${textcolor}">
+      <![CDATA[${arrDesign[i]}]]>
+      </text>`;
+      bloc += result;
+    }
+    return bloc;
   }
+
+  let designationBloc = customBloc(designation, 25, "middle", 190, 128, 15, 13, textcolor)
+  let asnBloc = asn && asn.length ? customBloc(asn, 35, "middle", 220, 128, 15, 10, textcolor) : "";
 
   return `
 
@@ -675,10 +723,14 @@ function tileConstructSVG (coord, z_level, zinit) {
   <text text-anchor="middle" x="128" y="64" font-size="22" fill="${textcolor}" >
     ${whois}
   </text>
-  <text text-anchor="middle" x="128" y="132" font-size="25" fill="${textcolor}">
+  <text text-anchor="middle" x="128" y="128" font-size="30" fill="${textcolor}">
     ${currentTile.ip}
   </text>
+  <text text-anchor="middle" x="128" y="148" font-size="14" fill="${textcolor}">
+    ${currentTile.ipEnd}
+  </text>
   ${designationBloc}
+  ${asnBloc}
   <text text-anchor="end" x="240" y="240" font-size="16" fill="${textcolor}">
     ${date}
   </text>

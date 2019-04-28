@@ -39,4 +39,24 @@ a {
     position: relative;
     left: -50%;
     text-align: center;
+    border: 1px solid #777;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;
+    padding: 3%;
+    font-size: large;
+    margin-top: 3%;
+}
+#footer {
+    position: fixed;
+    bottom: 0;
+    background-color: #ffffff;
+    font-size: 5pt;
+    color: #333131;
+    height: 16.5px;
+    padding: 0;
+    z-index: 500;
+    box-sizing: border-box;
+    line-height: 3px;
+    width: 100%;
+    opacity: 0.5;
 }

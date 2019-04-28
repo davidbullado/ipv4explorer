@@ -8,6 +8,7 @@ var fs = require("fs");
 var index_1 = require("./routes/index");
 var tiles_1 = require("./routes/tiles");
 var whois_1 = require("./routes/whois");
+var nslookup_1 = require("./routes/nslookup");
 var ip2lite_1 = require("./ip2lite");
 //Load data from csv
 ip2lite_1.loadData();
@@ -19,6 +20,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.use('/', index_1.default);
 app.use('/tiles', tiles_1.default);
 app.use('/whois', whois_1.default);
+app.use('/nslookup', nslookup_1.default);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
     var err = new Error('Not Found');

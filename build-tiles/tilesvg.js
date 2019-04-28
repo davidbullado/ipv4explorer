@@ -92,11 +92,22 @@ function filter(d) {
  * @param ipEnd last ip of a block
  */
 function getCountriesRange(ipStart, ipEnd) {
+    return getCountriesRangeForIndex(ip2lite_1.ip2lite.ipArrayIdx, ip2lite_1.ip2lite.ipArray, ipStart, ipEnd);
+}
+function getASNsRange(ipStart, ipEnd) {
+    return getCountriesRangeForIndex(ip2lite_1.ip2lite.ipArrayASNIdx, ip2lite_1.ip2lite.ipArrayASN, ipStart, ipEnd);
+}
+/**
+ * Get a slice of ip/country array
+ * @param ipStart first ip of a block
+ * @param ipEnd last ip of a block
+ */
+function getCountriesRangeForIndex(idx, arr, ipStart, ipEnd) {
     // instead of doing an array.filter, which is time consuming,
     // we use bisect on an index.
-    var idLo = d3_array_1.bisectLeft(ip2lite_1.ip2lite.ipArrayIdx, ipStart);
-    var idHi = d3_array_1.bisectLeft(ip2lite_1.ip2lite.ipArrayIdx, ipEnd);
-    var myRange = ip2lite_1.ip2lite.ipArray.slice(idLo, idHi + 1);
+    var idLo = d3_array_1.bisectLeft(idx, ipStart);
+    var idHi = d3_array_1.bisectLeft(idx, ipEnd);
+    var myRange = arr.slice(idLo, idHi + 1);
     return myRange;
 }
 function aggregateCountryRangeByLabel(myRange) {
@@ -105,6 +116,13 @@ function aggregateCountryRangeByLabel(myRange) {
         countries.set(r.countryCode, r.countryLabel);
     });
     return countries;
+}
+function aggregateASNRangeByLabel(myRange) {
+    var asns = new Map();
+    myRange.forEach(function (r) {
+        asns.set(r.ASNName, r.ASNName);
+    });
+    return asns;
 }
 function getCountries(ipValue, zoom) {
     var res;
@@ -121,6 +139,24 @@ function getCountries(ipValue, zoom) {
         var arrCountryCode = Array.from(m.keys());
         // concat them into csv with a trailing ... if more than 4 countries.
         res = arrCountryCode.slice(0, 4).join(", ") + (m.size > 4 ? ", " + arrCountryCode[4] + ", ..." : "");
+    }
+    return res;
+}
+function getASNs(ipValue, zoom) {
+    var res = "";
+    var ipEnd;
+    // get last ip of the block given zoom
+    ipEnd = (new index_1.IPv4(ipValue)).getLastIPMask(zoom * 2);
+    var m = aggregateASNRangeByLabel(getASNsRange(ipValue, ipEnd.pVal));
+    if (m.size === 1) {
+        // get the full asn name
+        res = m.values().next().value;
+    }
+    else {
+        // get the asn
+        var arrASN = Array.from(m.keys());
+        // concat them into csv with a trailing ... if more than 2 asn.
+        res = arrASN.slice(0, 1).join(", ") + (m.size > 2 ? ", +" + (m.size - 1) + " ASNs ..." : "");
     }
     return res;
 }
@@ -180,14 +216,15 @@ function getXYTile(point) {
     }
     var strIP = ipTile.toString();
     // single ip scale
-    if (point.z < 16) {
+    /*if (point.z < 16) {
         strIP += "/" + (point.z * 2) + "\n";
-    }
+    }*/
     // list all Regional Internet Registries where my ip belong
     var resWhois = ip2lite_1.ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal });
-    var res = { x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP };
+    var res = { x: point.x, y: point.y, z: point.z, desc: null, asn: null, whois: resWhois[0].whois, date: null, ip: strIP, ipEnd: ipTile.getLastIPMask(point.z * 2).pString };
     if (point.z > 5) {
         res.desc = getCountries(ipTile.pVal, point.z);
+        res.asn = getASNs(ipTile.pVal, point.z);
         res.date = "";
     }
     else {
@@ -435,6 +472,7 @@ function tileConstructSVG(coord, z_level, zinit) {
     var whois = currentTile.whois;
     var designation = currentTile.desc;
     var date = currentTile.date;
+    var asn = currentTile.asn;
     var fillRect = getColorFromWhois({ whois: whois, designation: designation });
     textcolor = getTextColor(fillRect);
     var join = "";
@@ -467,11 +505,11 @@ function tileConstructSVG(coord, z_level, zinit) {
             if (comparable) {
                 deepx = (currentTile.x + 1) * patchNbTiles;
                 deepy = currentTile.y * patchNbTiles;
-                for (var i_1 = 0; i_1 < patchNbTiles; i_1++) {
-                    var tile1 = getXYTile({ x: deepx, y: deepy + i_1, z: deeplevel });
-                    var tile2 = getXYTile({ x: deepx - 1, y: deepy + i_1, z: deeplevel });
+                for (var i = 0; i < patchNbTiles; i++) {
+                    var tile1 = getXYTile({ x: deepx, y: deepy + i, z: deeplevel });
+                    var tile2 = getXYTile({ x: deepx - 1, y: deepy + i, z: deeplevel });
                     if (tile1 && tile2 && compareTiles(tile1, tile2)) {
-                        rectJoin += "\n            <rect x=\"" + (256 - 15) + "\" y=\"" + (offsetx + i_1 * patchWidth) + "\" width=\"" + patchHeight + "\" height=\"" + patchWidth + "\" fill=\"" + fillRect + "\" />\n            <line stroke-dasharray=\"2,2\" x1=\"255\" y1=\"" + (offsetx + i_1 * patchWidth) + "\" x2=\"255\" y2=\"" + (offsetx + (i_1 + 1) * patchWidth) + "\" />\n            ";
+                        rectJoin += "\n            <rect x=\"" + (256 - 15) + "\" y=\"" + (offsetx + i * patchWidth) + "\" width=\"" + patchHeight + "\" height=\"" + patchWidth + "\" fill=\"" + fillRect + "\" />\n            <line stroke-dasharray=\"2,2\" x1=\"255\" y1=\"" + (offsetx + i * patchWidth) + "\" x2=\"255\" y2=\"" + (offsetx + (i + 1) * patchWidth) + "\" />\n            ";
                     }
                 }
             }
@@ -486,11 +524,11 @@ function tileConstructSVG(coord, z_level, zinit) {
             if (comparable) {
                 deepx = currentTile.x * patchNbTiles;
                 deepy = currentTile.y * patchNbTiles;
-                for (var i_2 = 0; i_2 < patchNbTiles; i_2++) {
-                    var tile1 = getXYTile({ x: deepx, y: deepy + i_2, z: deeplevel });
-                    var tile2 = getXYTile({ x: deepx - 1, y: deepy + i_2, z: deeplevel });
+                for (var i = 0; i < patchNbTiles; i++) {
+                    var tile1 = getXYTile({ x: deepx, y: deepy + i, z: deeplevel });
+                    var tile2 = getXYTile({ x: deepx - 1, y: deepy + i, z: deeplevel });
                     if (tile1 && tile2 && compareTiles(tile1, tile2)) {
-                        rectJoin += "\n            <rect x=\"0\" y=\"" + (offsetx + i_2 * patchWidth) + "\" width=\"" + patchHeight + "\" height=\"" + patchWidth + "\" fill=\"" + fillRect + "\" />\n            \n            ";
+                        rectJoin += "\n            <rect x=\"0\" y=\"" + (offsetx + i * patchWidth) + "\" width=\"" + patchHeight + "\" height=\"" + patchWidth + "\" fill=\"" + fillRect + "\" />\n            \n            ";
                     }
                 }
             }
@@ -505,11 +543,11 @@ function tileConstructSVG(coord, z_level, zinit) {
             if (comparable) {
                 deepx = currentTile.x * patchNbTiles;
                 deepy = currentTile.y * patchNbTiles;
-                for (var i_3 = 0; i_3 < patchNbTiles; i_3++) {
-                    var tile1 = getXYTile({ x: deepx + i_3, y: deepy - 1, z: deeplevel });
-                    var tile2 = getXYTile({ x: deepx + i_3, y: deepy, z: deeplevel });
+                for (var i = 0; i < patchNbTiles; i++) {
+                    var tile1 = getXYTile({ x: deepx + i, y: deepy - 1, z: deeplevel });
+                    var tile2 = getXYTile({ x: deepx + i, y: deepy, z: deeplevel });
                     if (tile1 && tile2 && compareTiles(tile1, tile2)) {
-                        rectJoin += "\n            <rect x=\"" + (offsetx + patchWidth * i_3) + "\" y=\"0\" width=\"" + patchWidth + "\" height=\"" + patchHeight + "\" fill=\"" + fillRect + "\" />\n            ";
+                        rectJoin += "\n            <rect x=\"" + (offsetx + patchWidth * i) + "\" y=\"0\" width=\"" + patchWidth + "\" height=\"" + patchHeight + "\" fill=\"" + fillRect + "\" />\n            ";
                     }
                 }
             }
@@ -524,11 +562,11 @@ function tileConstructSVG(coord, z_level, zinit) {
             if (comparable) {
                 deepx = currentTile.x * patchNbTiles;
                 deepy = (currentTile.y + 1) * patchNbTiles;
-                for (var i_4 = 0; i_4 < patchNbTiles; i_4++) {
-                    var tile1 = getXYTile({ x: deepx + i_4, y: deepy - 1, z: deeplevel });
-                    var tile2 = getXYTile({ x: deepx + i_4, y: deepy, z: deeplevel });
+                for (var i = 0; i < patchNbTiles; i++) {
+                    var tile1 = getXYTile({ x: deepx + i, y: deepy - 1, z: deeplevel });
+                    var tile2 = getXYTile({ x: deepx + i, y: deepy, z: deeplevel });
                     if (tile1 && tile2 && compareTiles(tile1, tile2)) {
-                        rectJoin += "\n            <rect x=\"" + (offsetx + patchWidth * i_4) + "\" y=\"" + (256 - 15) + "\" width=\"" + patchWidth + "\" height=\"" + patchHeight + "\" fill=\"" + fillRect + "\" />\n            <line stroke-dasharray=\"2,2\" x1=\"" + (offsetx + i_4 * patchWidth) + "\" y1=\"255\" x2=\"" + (offsetx + (i_4 + 1) * patchWidth) + "\" y2=\"255\" />\n            ";
+                        rectJoin += "\n            <rect x=\"" + (offsetx + patchWidth * i) + "\" y=\"" + (256 - 15) + "\" width=\"" + patchWidth + "\" height=\"" + patchHeight + "\" fill=\"" + fillRect + "\" />\n            <line stroke-dasharray=\"2,2\" x1=\"" + (offsetx + i * patchWidth) + "\" y1=\"255\" x2=\"" + (offsetx + (i + 1) * patchWidth) + "\" y2=\"255\" />\n            ";
                     }
                 }
             }
@@ -536,15 +574,18 @@ function tileConstructSVG(coord, z_level, zinit) {
         var _b = genMatrix(currentTile, zinit, true), myNeighbors = _b.myNeighbors, myNeighborsEquals = _b.myNeighborsEquals, nbEqualsBtwThem = _b.nbEqualsBtwThem;
         join = genJoin(myNeighborsEquals, nbEqualsBtwThem, fillRect);
     }
-    var arrDesign = exports.splitTextMultipleLines(designation, 25);
-    var designationBloc = "";
-    var designationStartY = 190;
-    var designationLineHeight = 15;
-    for (var i = 0; i < arrDesign.length; i++) {
-        var result = "<text text-anchor=\"middle\" x=\"128\" y=\"" + (designationStartY + designationLineHeight * (i)) + "\" font-size=\"13\" fill=\"" + textcolor + "\">\n    <![CDATA[" + arrDesign[i] + "]]>\n    </text>";
-        designationBloc += result;
+    function customBloc(text, charTrunc, anchor, starty, startx, lineHeight, fontSize, textcolor) {
+        var arrDesign = exports.splitTextMultipleLines(text, charTrunc);
+        var bloc = "";
+        for (var i = 0; i < arrDesign.length; i++) {
+            var result = "<text text-anchor=\"" + anchor + "\" x=\"" + startx + "\" y=\"" + (starty + lineHeight * (i)) + "\" font-size=\"" + fontSize + "\" fill=\"" + textcolor + "\">\n      <![CDATA[" + arrDesign[i] + "]]>\n      </text>";
+            bloc += result;
+        }
+        return bloc;
     }
-    return "\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"132\" font-size=\"25\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  " + designationBloc + "\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + rectJoin + "\n  " + stroke + "\n  \n";
+    var designationBloc = customBloc(designation, 25, "middle", 190, 128, 15, 13, textcolor);
+    var asnBloc = asn && asn.length ? customBloc(asn, 35, "middle", 220, 128, 15, 10, textcolor) : "";
+    return "\n\n  " + join + "\n\n  <rect x=\"" + rect.x + "\" y=\"" + rect.y + "\" width=\"" + rect.width + "\" height=\"" + rect.height + "\" \n          rx=\"15\" ry=\"15\" fill=\"" + fillRect + "\" />\n  <text text-anchor=\"middle\" x=\"128\" y=\"64\" font-size=\"22\" fill=\"" + textcolor + "\" >\n    " + whois + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"128\" font-size=\"30\" fill=\"" + textcolor + "\">\n    " + currentTile.ip + "\n  </text>\n  <text text-anchor=\"middle\" x=\"128\" y=\"148\" font-size=\"14\" fill=\"" + textcolor + "\">\n    " + currentTile.ipEnd + "\n  </text>\n  " + designationBloc + "\n  " + asnBloc + "\n  <text text-anchor=\"end\" x=\"240\" y=\"240\" font-size=\"16\" fill=\"" + textcolor + "\">\n    " + date + "\n  </text>\n  " + rectJoin + "\n  " + stroke + "\n  \n";
 }
 function tileConstruct(coord) {
     var svgcontent;

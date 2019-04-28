@@ -1,6 +1,7 @@
 import express = require("express");
 import path = require("path");
 import whois = require('whois');
+import dns = require('dns');
 
 const router: express.Router = express.Router();
 
@@ -10,13 +11,22 @@ router.get("/:ip", (req: express.Request, res: express.Response) => {
     let ipReg: string = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
     let fullReg: string = "^" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + "$";
 
-    if (!(new RegExp(fullReg)).test(req.params.ip)) {
-        res.status(204).send();
-    } else {
+    let nsReg: string = "^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$";
+
+    if ((new RegExp(fullReg)).test(req.params.ip)) {
         whois.lookup(req.params.ip, function(err, data) {
             res.type("text");
             res.send(data);
         });
+    } else if ((new RegExp(nsReg)).test(req.params.ip)) {
+        dns.lookup(req.params.ip, function(err, data) {
+            whois.lookup(data, function(err, data) {
+                res.type("text");
+                res.send(data);
+            });
+        });
+    } else {
+        res.status(204).send();
     }
 });
 

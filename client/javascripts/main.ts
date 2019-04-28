@@ -104,6 +104,31 @@ function query(ip, callback) {
 
 }
 
+function queryNS(ns, callback) {
+    
+    var request = new XMLHttpRequest();
+    request.open('GET', '/nslookup/'+ns, true);
+    
+    request.onload = function() {
+      if (request.status >= 200 && request.status < 400) {
+        // Success!
+        var resp = request.responseText;
+        callback(resp);
+      } else {
+        // We reached our target server, but it returned an error
+        console.log('We reached our target server, but it returned an error');
+      }
+    };
+    
+    request.onerror = function() {
+      // There was a connection error of some sort
+      console.log('There was a connection error of some sort');
+    };
+    
+    request.send();
+
+}
+
 mymap.on("click", onMapClick);
 
 let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
@@ -115,17 +140,44 @@ window.onload = function () {
     }
 }
 
-export function addMarkerForIP(IPString) {
-    let ip: IPv4 = IPv4.newIPv4FromString(IPString);
-    let latlng: L.LatLng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
-    //L.marker(latlng).addTo(mymap);
-    mymap.panTo(latlng);
-    mymap.setView(latlng, 16);
+export function addMarkerForIP(searchString:string) {
 
-    query(ip.toString(), function (whois) {
-        popup
-        .setLatLng(latlng)
-        .setContent('<div class="whois">'+whois+'</div>')
-        .openOn(mymap);
-    });
+    let ipReg: string = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
+    let fullReg: string = "^" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + "$";
+    let nsReg: string = "^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$";
+
+    if ((new RegExp(fullReg)).test(searchString)) {
+        let ipString = searchString;
+        let ip: IPv4 = IPv4.newIPv4FromString(ipString);
+        let latlng: L.LatLng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
+        //L.marker(latlng).addTo(mymap);
+        mymap.panTo(latlng);
+        mymap.setView(latlng, 16);
+    
+        query(ip.toString(), function (whois) {
+            popup
+            .setLatLng(latlng)
+            .setContent('<div class="whois">'+whois+'</div>')
+            .openOn(mymap);
+        });
+    } else if ((new RegExp(nsReg)).test(searchString)) {
+        let ns = searchString;
+        queryNS(ns, function (ipString) {
+            let ip: IPv4 = IPv4.newIPv4FromString(ipString);
+            let latlng: L.LatLng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
+            mymap.panTo(latlng);
+            mymap.setView(latlng, 16);
+
+            query(ip.toString(), function (whois) {
+                popup
+                .setLatLng(latlng)
+                .setContent('<div class="whois">'+whois+'</div>')
+                .openOn(mymap);
+            });
+        });
+    } else {
+
+    }
+
+
 }

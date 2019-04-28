@@ -37,17 +37,32 @@ var ui =
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, {
-/******/ 				configurable: false,
-/******/ 				enumerable: true,
-/******/ 				get: getter
-/******/ 			});
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
 /******/ 		}
 /******/ 	};
 /******/
 /******/ 	// define __esModule on exports
 /******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
 /******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -213,6 +228,26 @@ function query(ip, callback) {
     };
     request.send();
 }
+function queryNS(ns, callback) {
+    var request = new XMLHttpRequest();
+    request.open('GET', '/nslookup/' + ns, true);
+    request.onload = function () {
+        if (request.status >= 200 && request.status < 400) {
+            // Success!
+            var resp = request.responseText;
+            callback(resp);
+        }
+        else {
+            // We reached our target server, but it returned an error
+            console.log('We reached our target server, but it returned an error');
+        }
+    };
+    request.onerror = function () {
+        // There was a connection error of some sort
+        console.log('There was a connection error of some sort');
+    };
+    request.send();
+}
 mymap.on("click", onMapClick);
 var myip = index_1.IPv4.newIPv4FromString(document.getElementById("ip").innerText);
 window.onload = function () {
@@ -221,18 +256,41 @@ window.onload = function () {
             .bindPopup("You are here.<br/>" + myip).openPopup();
     }
 };
-function addMarkerForIP(IPString) {
-    var ip = index_1.IPv4.newIPv4FromString(IPString);
-    var latlng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
-    //L.marker(latlng).addTo(mymap);
-    mymap.panTo(latlng);
-    mymap.setView(latlng, 16);
-    query(ip.toString(), function (whois) {
-        popup
-            .setLatLng(latlng)
-            .setContent('<div class="whois">' + whois + '</div>')
-            .openOn(mymap);
-    });
+function addMarkerForIP(searchString) {
+    var ipReg = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
+    var fullReg = "^" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + "$";
+    var nsReg = "^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$";
+    if ((new RegExp(fullReg)).test(searchString)) {
+        var ipString = searchString;
+        var ip = index_1.IPv4.newIPv4FromString(ipString);
+        var latlng_1 = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
+        //L.marker(latlng).addTo(mymap);
+        mymap.panTo(latlng_1);
+        mymap.setView(latlng_1, 16);
+        query(ip.toString(), function (whois) {
+            popup
+                .setLatLng(latlng_1)
+                .setContent('<div class="whois">' + whois + '</div>')
+                .openOn(mymap);
+        });
+    }
+    else if ((new RegExp(nsReg)).test(searchString)) {
+        var ns = searchString;
+        queryNS(ns, function (ipString) {
+            var ip = index_1.IPv4.newIPv4FromString(ipString);
+            var latlng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
+            mymap.panTo(latlng);
+            mymap.setView(latlng, 16);
+            query(ip.toString(), function (whois) {
+                popup
+                    .setLatLng(latlng)
+                    .setContent('<div class="whois">' + whois + '</div>')
+                    .openOn(mymap);
+            });
+        });
+    }
+    else {
+    }
 }
 exports.addMarkerForIP = addMarkerForIP;
 
@@ -402,7 +460,7 @@ exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader
 
 
 // module
-exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n#ip {\n    display: none;\n}\n\n.whois {\n    max-height:200px;\n    white-space: pre;\n    overflow:scroll;\n}\n\n#search {\n    position: absolute;\n    z-index: 1000;\n    left: 50%;\n}\n#search input {\n    position: relative;\n    left: -50%;\n    text-align: center;\n}", ""]);
+exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n#ip {\n    display: none;\n}\n\n.whois {\n    max-height:200px;\n    white-space: pre;\n    overflow:scroll;\n}\n\n#search {\n    position: absolute;\n    z-index: 1000;\n    left: 50%;\n}\n#search input {\n    position: relative;\n    left: -50%;\n    text-align: center;\n    border: 1px solid #777;\n    border-radius: 5px;\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;\n    padding: 3%;\n    font-size: large;\n    margin-top: 3%;\n}\n#footer {\n    position: fixed;\n    bottom: 0;\n    background-color: #ffffff;\n    font-size: 5pt;\n    color: #333131;\n    height: 16.5px;\n    padding: 0;\n    z-index: 500;\n    box-sizing: border-box;\n    line-height: 3px;\n    width: 100%;\n    opacity: 0.5;\n}", ""]);
 
 // exports
 

@@ -7,6 +7,7 @@ import fs = require('fs');
 import routes from "./routes/index";
 import tiles from "./routes/tiles";
 import whois from "./routes/whois";
+import nslookup from "./routes/nslookup";
 
 import {loadData} from "./ip2lite";
 
@@ -25,6 +26,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 app.use('/', routes);
 app.use('/tiles', tiles);
 app.use('/whois', whois);
+app.use('/nslookup', nslookup);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
