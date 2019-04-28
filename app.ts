@@ -10,6 +10,7 @@ import whois from "./routes/whois";
 import nslookup from "./routes/nslookup";
 
 import {loadData} from "./ip2lite";
+import { AddressInfo } from 'net';
 
 
 //Load data from csv
@@ -65,16 +66,16 @@ var options = {
     key: fs.readFileSync('./server.key'),
     cert: fs.readFileSync('./server.crt')
   }
-http2
+/*http2
   .createServer(options, app)
   .listen(3000, ()=>{
     debug('Express server listening on port 3000');
   }
-)
-/*
+)*/
+
     app.set('port', process.env.PORT || 3000);
 
     var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
-        debug('Express server listening on port ' + server.address().port);
+        const { port } = server.address() as AddressInfo;
+        debug('Express server listening on port ' + port);
     });
-*/

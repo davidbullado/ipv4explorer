@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var http2 = require("spdy");
 var debug = require("debug");
 var express = require("express");
 var path = require("path");
@@ -52,16 +51,15 @@ var options = {
     key: fs.readFileSync('./server.key'),
     cert: fs.readFileSync('./server.crt')
 };
-http2
-    .createServer(options, app)
-    .listen(3000, function () {
+/*http2
+  .createServer(options, app)
+  .listen(3000, ()=>{
     debug('Express server listening on port 3000');
+  }
+)*/
+app.set('port', process.env.PORT || 3000);
+var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
+    var port = server.address().port;
+    debug('Express server listening on port ' + port);
 });
-/*
-    app.set('port', process.env.PORT || 3000);
-
-    var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
-        debug('Express server listening on port ' + server.address().port);
-    });
-*/ 
 //# sourceMappingURL=app.js.map
