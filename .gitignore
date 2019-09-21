@@ -269,3 +269,6 @@ __pycache__/
 
 IP2LOCATION-LITE-ASN.CSV
 IP2LOCATION-LITE-DB1.CSV
+
+wwwroot/app/**/*.js
+wwwroot/app/**/*.map

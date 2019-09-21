@@ -16,11 +16,6 @@ import { AddressInfo } from 'net';
 //Load data from csv
 loadData() ;
 
-// Reload data every 24h
-window.setInterval(function(){
-    loadData();
-}, 24*60*1000);
-
 var app = express();
 
 // view engine setup

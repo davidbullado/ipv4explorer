@@ -8,3 +8,5 @@ wget -O db1lite.zip "http://www.ip2location.com/download/?token=${IP2LOCATION_TO
 rm DBASNLITE.zip
 wget -O DBASNLITE.zip "http://www.ip2location.com/download/?token=${IP2LOCATION_TOKEN}&file=DBASNLITE"
 [ -f DBASNLITE.zip ] && unzip -o DBASNLITE.zip
+
+sudo service ipv4explorer restart
