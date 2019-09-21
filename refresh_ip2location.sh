@@ -9,4 +9,7 @@ rm DBASNLITE.zip
 wget -O DBASNLITE.zip "http://www.ip2location.com/download/?token=${IP2LOCATION_TOKEN}&file=DBASNLITE"
 [ -f DBASNLITE.zip ] && unzip -o DBASNLITE.zip
 
+wget -O ipv4-address-space.csv https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.csv
+[ -f ipv4-address-space.csv ] && cp -rf ipv4-address-space.csv build-tiles/ipv4-address-space.csv
+
 sudo service ipv4explorer restart
