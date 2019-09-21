@@ -1,7 +1,10 @@
 #!/bin/bash
+source /etc/environment
 
-#wget -O db1lite.zip "http://www.ip2location.com/download/?token=HJHaZKmCNPer9rN3D7xhxyqTbKS9IB8plPzkzWXnLbOVCBZfJwxh5YagI2qrEyQY&file=DB1LITE"
-#unzip db1lite.zip
+rm db1lite.zip
+wget -O db1lite.zip "http://www.ip2location.com/download/?token=${IP2LOCATION_TOKEN}&file=DB1LITE"
+[ -f db1lite.zip ] && unzip -o db1lite.zip
 
-#wget -O DBASNLITE.zip "http://www.ip2location.com/download/?token=HJHaZKmCNPer9rN3D7xhxyqTbKS9IB8plPzkzWXnLbOVCBZfJwxh5YagI2qrEyQY&file=DBASNLITE"
-#unzip DBASNLITE.zip
+rm DBASNLITE.zip
+wget -O DBASNLITE.zip "http://www.ip2location.com/download/?token=${IP2LOCATION_TOKEN}&file=DBASNLITE"
+[ -f DBASNLITE.zip ] && unzip -o DBASNLITE.zip
