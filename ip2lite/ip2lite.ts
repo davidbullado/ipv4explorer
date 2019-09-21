@@ -6,8 +6,6 @@ import request from 'sync-request';
 
 import fs = require("fs");
 
-const urlLoc: string = "https://github.com/davidbullado/ip2location/raw/master/IP2LOCATION-LITE-DB1.CSV";
-
 export interface IDataIP {
     ipRangeStart: IPv4;
     ipRangeEnd: IPv4;
@@ -75,13 +73,7 @@ export function loadData() {
     var body ;
     var asn;
 
-    if (!fs.existsSync("./IP2LOCATION-LITE-DB1.CSV")){
-        console.log("Download csv...");
-        body = request('GET', urlLoc).getBody();
-        fs.writeFileSync("./IP2LOCATION-LITE-DB1.CSV",body.toString());
-    } else {
-        body = fs.readFileSync("./IP2LOCATION-LITE-DB1.CSV").toString();
-    }
+    body = fs.readFileSync("./IP2LOCATION-LITE-DB1.CSV").toString();
     asn = fs.readFileSync("./IP2LOCATION-LITE-ASN.CSV").toString();
 
     console.log("Parse csv...");

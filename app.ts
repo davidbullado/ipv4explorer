@@ -9,12 +9,17 @@ import tiles from "./routes/tiles";
 import whois from "./routes/whois";
 import nslookup from "./routes/nslookup";
 
-import {loadData} from "./ip2lite";
+import { loadData } from "./ip2lite";
 import { AddressInfo } from 'net';
 
 
 //Load data from csv
 loadData() ;
+
+// Reload data every 24h
+window.setInterval(function(){
+    loadData();
+}, 24*60*1000);
 
 var app = express();
 
@@ -60,12 +65,11 @@ app.use((err: any, req, res, next) => {
     });
 });
 
-
-
 var options = {
     key: fs.readFileSync('./server.key'),
     cert: fs.readFileSync('./server.crt')
-  }
+}
+
 /*http2
   .createServer(options, app)
   .listen(3000, ()=>{
@@ -73,9 +77,9 @@ var options = {
   }
 )*/
 
-    app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3000);
 
-    var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
-        const { port } = server.address() as AddressInfo;
-        debug('Express server listening on port ' + port);
-    });
+var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
+    const { port } = server.address() as AddressInfo;
+    debug('Express server listening on port ' + port);
+});
