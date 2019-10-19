@@ -1,7 +1,16 @@
 extends layout
 
 block content
-  div#ip=myip
   div#search
     input(type='text' onchange='ui.addMarkerForIP(this.value)')
+  div#ip=myip
   div#mapid
+  div#show.off
+    div.toolbar
+      button.minimize(onclick='document.getElementById("show").className = "mini";') 🗕
+      button.maximize(onclick='document.getElementById("show").className = "full";') 🗖
+      button.close(onclick='document.getElementById("show").className = "off";') ×
+    div.content
+      div.whois
+
+

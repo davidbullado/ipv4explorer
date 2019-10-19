@@ -66,17 +66,20 @@ var popup: L.Popup = L.popup();
 
 function onMapClick(e: any):void {
     
-    
-    
     const mypoint: L.Point = mymap.project(e.latlng, mymap.getZoom());
     const myip: IPv4 = IPv4.newIPv4FromPoint( getAbsolutePoint(mymap, e.latlng) );
 
-    query(myip.toString(), function (whois) {
-        popup
+    document.getElementById("show").className = "off";
+    
+    popup
         .setLatLng(e.latlng)
-        .setContent('<div class="whois">'+whois+'</div>')
+        .setContent(myip.toString())
         .openOn(mymap);
+        
+    query(myip.toString(), function (whois) {
+        showModal(whois);
     });
+    
 }
 
 function query(ip, callback) {
@@ -140,7 +143,12 @@ window.onload = function () {
     }
 }
 
-export function addMarkerForIP(searchString:string) {
+function showModal (content:string) {
+    document.getElementById("show").className = "mini";
+    document.querySelector("#show .whois").textContent = content;
+}
+
+export function addMarkerForIP ( searchString:string ) {
 
     let ipReg: string = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
     let fullReg: string = "^" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + "$";
@@ -153,12 +161,12 @@ export function addMarkerForIP(searchString:string) {
         //L.marker(latlng).addTo(mymap);
         mymap.panTo(latlng);
         mymap.setView(latlng, 16);
-    
-        query(ip.toString(), function (whois) {
-            popup
+        popup
             .setLatLng(latlng)
-            .setContent('<div class="whois">'+whois+'</div>')
+            .setContent(ip.toString())
             .openOn(mymap);
+        query(ip.toString(), function (whois) {
+            showModal(whois);
         });
     } else if ((new RegExp(nsReg)).test(searchString)) {
         let ns = searchString;
@@ -167,13 +175,15 @@ export function addMarkerForIP(searchString:string) {
             let latlng: L.LatLng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
             mymap.panTo(latlng);
             mymap.setView(latlng, 16);
+            popup
+                .setLatLng(latlng)
+                .setContent(ip.toString())
+                .openOn(mymap);
 
             query(ip.toString(), function (whois) {
-                popup
-                .setLatLng(latlng)
-                .setContent('<div class="whois">'+whois+'</div>')
-                .openOn(mymap);
+                showModal(whois);
             });
+            
         });
     } else {
 
