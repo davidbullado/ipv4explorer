@@ -25,9 +25,9 @@ a {
 }
 
 .whois {
-    max-height:200px;
     white-space: pre;
-    overflow:scroll;
+    font-family: 'Roboto Mono', monospace;
+    margin: 20px;
 }
 
 #search {
@@ -46,11 +46,93 @@ a {
     font-size: large;
     margin-top: 3%;
 }
+
+.on {
+    display:block;
+}
+
+#show {
+    position: absolute;
+    left: 50%;
+    border-radius: 5px;
+    background-color:white;
+    z-index: 999;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    transition: 1s;
+    display: flex;
+    flex-direction: column;
+}
+
+#show.mini {
+    width: 380px;
+    height: 300px;
+    font-size:50%;
+    bottom:1%;
+    transform: translate(-50%, 0%);
+}
+
+@media (max-width : 380px) {
+    #show.mini {
+        width: 95%;
+        height: 50%;
+        font-size:50%;
+        bottom:1%;
+        transform: translate(-50%, 0%);
+    }
+}
+
+#show.full {
+    width: 800px;
+    height: 600px;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@media (max-width : 800px) {
+    #show.full {
+        width: 95%;
+        height: 95%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+#show.off{
+    display:none;
+}
+
+.content{
+    flex: 1;
+    overflow: auto;
+}
+
+.toolbar {
+    display:flex;
+    justify-content: flex-end;
+    height: 25px;
+}
+
+.mini > .toolbar > .maximize {
+    display: block;
+}
+
+.mini > .toolbar > .minimize {
+    display: none;
+}
+
+.full > .toolbar > .maximize {
+    display: none;
+}
+
+.full > .toolbar > .minimize {
+    display: block;
+}
+
 #footer {
     position: fixed;
     bottom: 0;
     background-color: #ffffff;
-    font-size: 5pt;
+    font-size: 50%;
     color: #333131;
     height: 16.5px;
     padding: 0;
