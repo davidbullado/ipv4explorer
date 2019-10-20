@@ -272,3 +272,4 @@ IP2LOCATION-LITE-DB1.CSV
 
 wwwroot/app/**/*.js
 wwwroot/app/**/*.map
+dist/bundle.js
