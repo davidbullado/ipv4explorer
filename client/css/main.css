@@ -27,24 +27,21 @@ a {
 .whois {
     white-space: pre;
     font-family: 'Roboto Mono', monospace;
-    margin: 20px;
+    margin: 0 4%;
 }
 
-#search {
-    position: absolute;
-    z-index: 1000;
-    left: 50%;
-}
 #search input {
-    position: relative;
-    left: -50%;
+    height: 36px;
+    z-index: 1000;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 0%);
     text-align: center;
     border: 1px solid #777;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;
-    padding: 3%;
     font-size: large;
-    margin-top: 3%;
+    margin-top: 1%;
 }
 
 .on {
@@ -53,31 +50,35 @@ a {
 
 #show {
     position: absolute;
-    left: 50%;
     border-radius: 5px;
     background-color:white;
     z-index: 999;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
-    transition: 1s;
+    /*transition: 1s;*/
     display: flex;
     flex-direction: column;
+    border : 1px solid black;
 }
 
 #show.mini {
+    right: 1%;
+    top:50%;
     width: 380px;
-    height: 300px;
+    height: 80%;
     font-size:50%;
-    bottom:1%;
-    transform: translate(-50%, 0%);
+    transform: translate(0%, -50%);
 }
 
-@media (max-width : 380px) {
+@media (max-width : 800px) {
     #show.mini {
+        top: auto;
+        left: 50%;
         width: 95%;
         height: 50%;
         font-size:50%;
-        bottom:1%;
+        bottom:3%;
         transform: translate(-50%, 0%);
+        max-width: 380px;
     }
 }
 
@@ -85,7 +86,9 @@ a {
     width: 800px;
     height: 600px;
     top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
+    z-index: 1500;
 }
 
 @media (max-width : 800px) {
@@ -109,7 +112,25 @@ a {
 .toolbar {
     display:flex;
     justify-content: flex-end;
-    height: 25px;
+    height: 40px;
+}
+
+.toolbar h2 {
+    flex: 1;
+    margin: auto 0 auto 4%;
+}
+
+.toolbar button {
+    background-color: transparent;
+    border: none;
+    color: grey;
+    cursor: pointer;
+}
+.toolbar button.close {
+    font-size:20px;
+}
+.toolbar button:hover {
+    color: #00B7FF;
 }
 
 .mini > .toolbar > .maximize {

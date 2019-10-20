@@ -2,10 +2,6 @@ import { IPv4 } from "../../ipv4/index";
 import * as L from "leaflet";
 
 let mymap: L.Map = L.map("mapid").fitWorld();
-/*.setView([0, 0], 1);.setMaxBounds([
-    [-90, -180],
-    [90, 180]
-])*/
 
 L.tileLayer("/tiles/{z}/{x}/{y}", {
 	maxZoom: 16,
@@ -22,6 +18,7 @@ interface IPoint {
     x: number;
     y: number;
 }
+
 
 function getIpVal(x: number, y: number, z: number): number {
     let ipval: number = 0;
@@ -41,10 +38,12 @@ function getIpVal(x: number, y: number, z: number): number {
     return ipval;
 }
 
+
 function getAbsolutePoint(map: L.Map, latlng: L.LatLng ): L.Point {
     const p: L.Point = map.project(latlng, map.getZoom());
     return p.multiplyBy(Math.pow(2, map.getMaxZoom() - map.getZoom() - 8)).floor();
 }
+
 
 function getLatLng(map: L.Map, point: IPoint, offset: number=0): L.LatLng {
     let ret: L.LatLng;
@@ -57,12 +56,16 @@ function getLatLng(map: L.Map, point: IPoint, offset: number=0): L.LatLng {
     }
     return ret;
 }
+
+
 function castLPoint(p: IPoint): L.Point {
     const point: L.Point = new L.Point(p.x, p.y);
     return point;
 }
 
+
 var popup: L.Popup = L.popup();
+
 
 function onMapClick(e: any):void {
     
@@ -77,10 +80,11 @@ function onMapClick(e: any):void {
         .openOn(mymap);
         
     query(myip.toString(), function (whois) {
-        showModal(whois);
+        showModal(myip.toString(), whois);
     });
     
 }
+
 
 function query(ip, callback) {
     
@@ -104,8 +108,8 @@ function query(ip, callback) {
     };
     
     request.send();
-
 }
+
 
 function queryNS(ns, callback) {
     
@@ -129,12 +133,14 @@ function queryNS(ns, callback) {
     };
     
     request.send();
-
 }
+
 
 mymap.on("click", onMapClick);
 
+
 let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
+
 
 window.onload = function () {
     if (myip.toString() !== "0.0.0.0") {
@@ -143,10 +149,13 @@ window.onload = function () {
     }
 }
 
-function showModal (content:string) {
+
+function showModal (search:string, content:string) {
     document.getElementById("show").className = "mini";
+    document.querySelector("#show h2").textContent = "Whois for " + search;
     document.querySelector("#show .whois").textContent = content;
 }
+
 
 export function addMarkerForIP ( searchString:string ) {
 
@@ -166,7 +175,7 @@ export function addMarkerForIP ( searchString:string ) {
             .setContent(ip.toString())
             .openOn(mymap);
         query(ip.toString(), function (whois) {
-            showModal(whois);
+            showModal(ip.toString(), whois);
         });
     } else if ((new RegExp(nsReg)).test(searchString)) {
         let ns = searchString;
@@ -181,13 +190,11 @@ export function addMarkerForIP ( searchString:string ) {
                 .openOn(mymap);
 
             query(ip.toString(), function (whois) {
-                showModal(whois);
+                showModal(ip.toString(), whois);
             });
             
         });
     } else {
 
     }
-
-
 }
