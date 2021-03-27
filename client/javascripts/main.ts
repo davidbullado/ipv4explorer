@@ -3,6 +3,9 @@ import * as L from "leaflet";
 
 let mymap: L.Map = L.map("mapid").fitWorld();
 
+let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
+let initZoomLevel = parseInt(document.getElementById("zoomlevel").innerText) || 0;
+
 L.tileLayer("/tiles/{z}/{x}/{y}", {
 	maxZoom: 16,
 	attribution: "",
@@ -84,7 +87,29 @@ function onMapClick(e: any):void {
     query(myip.toString(), function (whois) {
         showModal(myip.toString(), whois);
     });
-    
+
+    updateQueryParamIp(myip.toString());
+}
+
+
+function getQueryParams(): URLSearchParams {
+    // Get current parameters from the address bar
+    return new URLSearchParams(window.location.pathname.substring(2));
+}
+
+
+function setQueryParams(queryParams: URLSearchParams) {
+    // Replace current parameters with the new ones
+    history.replaceState(null, null, "@"+queryParams.toString());
+}
+
+function updateQueryParamIp(ip: string) {
+    // Get current parameters from the address bar
+    var queryParams: URLSearchParams = getQueryParams();
+    // Update the parameter ip
+    queryParams.set("ip", ip);
+    // Replace current parameters with the new ones
+    setQueryParams(queryParams);
 }
 
 
@@ -97,6 +122,7 @@ function query(ip, callback) {
       if (request.status >= 200 && request.status < 400) {
         // Success!
         var resp = request.responseText;
+        updateQueryParamIp(ip);
         callback(resp);
       } else {
         // We reached our target server, but it returned an error
@@ -140,16 +166,26 @@ function queryNS(ns, callback) {
 
 mymap.on("click", onMapClick);
 
+mymap.on('zoomend', function() {
+    // Get current parameters from the address bar
+    var queryParams: URLSearchParams = getQueryParams();
+    // Update the parameter ip
+    queryParams.set("zoom", mymap.getZoom().toString());
+    // Replace current parameters with the new ones
+    setQueryParams(queryParams);
+});
 
-let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
 
 
 window.onload = function () {
     if (myip.toString() !== "0.0.0.0") {
-        marker = L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap);
+        let latlng: L.LatLng = getLatLng(mymap, castLPoint(myip.pPoint), 0.5);
+        mymap.setView(latlng, initZoomLevel);
+        marker = L.marker(latlng).addTo(mymap);
         marker.bindPopup("You are here.<br/>" + myip).openPopup();
     }
 }
+
 
 
 function showModal (search:string, content:string) {
