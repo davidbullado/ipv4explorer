@@ -150,10 +150,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var index_1 = __webpack_require__(/*! ../../ipv4/index */ "./ipv4/index.ts");
 var L = __webpack_require__(/*! leaflet */ "./node_modules/leaflet/dist/leaflet-src.js");
 var mymap = L.map("mapid").fitWorld();
-/*.setView([0, 0], 1);.setMaxBounds([
-    [-90, -180],
-    [90, 180]
-])*/
 L.tileLayer("/tiles/{z}/{x}/{y}", {
     maxZoom: 16,
     attribution: "",
@@ -198,14 +194,19 @@ function castLPoint(p) {
     return point;
 }
 var popup = L.popup();
+var marker;
 function onMapClick(e) {
     var mypoint = mymap.project(e.latlng, mymap.getZoom());
     var myip = index_1.IPv4.newIPv4FromPoint(getAbsolutePoint(mymap, e.latlng));
+    document.getElementById("show").className = "off";
+    marker && mymap.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(mymap);
+    /*popup
+        .setLatLng(e.latlng)
+        .setContent(myip.toString())
+        .openOn(mymap);*/
     query(myip.toString(), function (whois) {
-        popup
-            .setLatLng(e.latlng)
-            .setContent('<div class="whois">' + whois + '</div>')
-            .openOn(mymap);
+        showModal(myip.toString(), whois);
     });
 }
 function query(ip, callback) {
@@ -252,26 +253,34 @@ mymap.on("click", onMapClick);
 var myip = index_1.IPv4.newIPv4FromString(document.getElementById("ip").innerText);
 window.onload = function () {
     if (myip.toString() !== "0.0.0.0") {
-        L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
-            .bindPopup("You are here.<br/>" + myip).openPopup();
+        marker = L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap);
+        marker.bindPopup("You are here.<br/>" + myip).openPopup();
     }
 };
+function showModal(search, content) {
+    document.getElementById("show").className = "mini";
+    document.querySelector("#show h2").textContent = "Whois for " + search;
+    document.querySelector("#show .whois").textContent = content;
+}
 function addMarkerForIP(searchString) {
     var ipReg = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
     var fullReg = "^" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + "$";
     var nsReg = "^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$";
     if ((new RegExp(fullReg)).test(searchString)) {
         var ipString = searchString;
-        var ip = index_1.IPv4.newIPv4FromString(ipString);
-        var latlng_1 = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
+        var ip_1 = index_1.IPv4.newIPv4FromString(ipString);
+        var latlng = getLatLng(mymap, castLPoint(ip_1.pPoint), 0.5);
         //L.marker(latlng).addTo(mymap);
-        mymap.panTo(latlng_1);
-        mymap.setView(latlng_1, 16);
-        query(ip.toString(), function (whois) {
-            popup
-                .setLatLng(latlng_1)
-                .setContent('<div class="whois">' + whois + '</div>')
-                .openOn(mymap);
+        mymap.panTo(latlng);
+        mymap.setView(latlng, 16);
+        marker && mymap.removeLayer(marker);
+        marker = L.marker(latlng).addTo(mymap);
+        /*popup
+            .setLatLng(latlng)
+            .setContent(ip.toString())
+            .openOn(mymap);*/
+        query(ip_1.toString(), function (whois) {
+            showModal(ip_1.toString(), whois);
         });
     }
     else if ((new RegExp(nsReg)).test(searchString)) {
@@ -281,11 +290,14 @@ function addMarkerForIP(searchString) {
             var latlng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
             mymap.panTo(latlng);
             mymap.setView(latlng, 16);
+            marker && mymap.removeLayer(marker);
+            marker = L.marker(latlng).addTo(mymap);
+            /*popup
+                .setLatLng(latlng)
+                .setContent(ip.toString())
+                .openOn(mymap);*/
             query(ip.toString(), function (whois) {
-                popup
-                    .setLatLng(latlng)
-                    .setContent('<div class="whois">' + whois + '</div>')
-                    .openOn(mymap);
+                showModal(ip.toString(), whois);
             });
         });
     }
@@ -460,7 +472,7 @@ exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader
 
 
 // module
-exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n#ip {\n    display: none;\n}\n\n.whois {\n    max-height:200px;\n    white-space: pre;\n    overflow:scroll;\n}\n\n#search {\n    position: absolute;\n    z-index: 1000;\n    left: 50%;\n}\n#search input {\n    position: relative;\n    left: -50%;\n    text-align: center;\n    border: 1px solid #777;\n    border-radius: 5px;\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;\n    padding: 3%;\n    font-size: large;\n    margin-top: 3%;\n}\n#footer {\n    position: fixed;\n    bottom: 0;\n    background-color: #ffffff;\n    font-size: 5pt;\n    color: #333131;\n    height: 16.5px;\n    padding: 0;\n    z-index: 500;\n    box-sizing: border-box;\n    line-height: 3px;\n    width: 100%;\n    opacity: 0.5;\n}", ""]);
+exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n#ip {\n    display: none;\n}\n\n.whois {\n    white-space: pre;\n    font-family: 'Roboto Mono', monospace;\n    margin: 0 4%;\n}\n\n#search input {\n    position: absolute;\n    height: 36px;\n    width: 300px;\n    z-index: 1000;\n    \n    left: 50%;\n    transform: translate(-50%, 0%);\n    text-align: center;\n    border: 1px solid #777;\n    border-radius: 5px;\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;\n    font-size: large;\n    margin-top: 1%;\n}\n\n.on {\n    display:block;\n}\n\n#show {\n    position: absolute;\n    border-radius: 5px;\n    background-color:white;\n    z-index: 999;\n    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);\n    /*transition: 1s;*/\n    display: flex;\n    flex-direction: column;\n    border : 1px solid black;\n}\n\n#show.mini {\n    right: 1%;\n    top:50%;\n    width: 380px;\n    height: 80%;\n    font-size:50%;\n    transform: translate(0%, -50%);\n}\n\n@media (max-width : 800px) {\n    #show.mini {\n        top: auto;\n        left: 50%;\n        width: 95%;\n        height: 50%;\n        font-size:50%;\n        bottom:3%;\n        transform: translate(-50%, 0%);\n        max-width: 380px;\n    }\n}\n\n#show.full {\n    width: 800px;\n    height: 600px;\n    top: 50%;\n    left: 50%;\n    transform: translate(-50%, -50%);\n    z-index: 1500;\n}\n\n@media (max-width : 800px) {\n    #show.full {\n        width: 95%;\n        height: 95%;\n        top: 50%;\n        transform: translate(-50%, -50%);\n    }\n}\n\n#show.off{\n    display:none;\n}\n\n.content{\n    flex: 1;\n    overflow: auto;\n}\n\n.toolbar {\n    display:flex;\n    justify-content: flex-end;\n    height: 40px;\n}\n\n.toolbar h2 {\n    flex: 1;\n    margin: auto 0 auto 4%;\n}\n\n.toolbar button {\n    background-color: transparent;\n    border: none;\n    color: grey;\n    cursor: pointer;\n}\n.toolbar button.close {\n    font-size:20px;\n}\n.toolbar button:hover {\n    color: #00B7FF;\n}\n\n.mini > .toolbar > .maximize {\n    display: block;\n}\n\n.mini > .toolbar > .minimize {\n    display: none;\n}\n\n.full > .toolbar > .maximize {\n    display: none;\n}\n\n.full > .toolbar > .minimize {\n    display: block;\n}\n\n#footer {\n    position: fixed;\n    bottom: 0;\n    font-size: 75%;\n    color: #b9b9b9;\n    padding: 0;\n    z-index: 500;\n    box-sizing: border-box;\n    line-height: 3px;\n    width: 100%;\n    opacity: 0.5;\n}", ""]);
 
 // exports
 

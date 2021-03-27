@@ -65,7 +65,7 @@ function castLPoint(p: IPoint): L.Point {
 
 
 var popup: L.Popup = L.popup();
-
+var marker: L.Marker;
 
 function onMapClick(e: any):void {
     
@@ -74,10 +74,12 @@ function onMapClick(e: any):void {
 
     document.getElementById("show").className = "off";
     
-    popup
+    marker && mymap.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(mymap);
+    /*popup
         .setLatLng(e.latlng)
         .setContent(myip.toString())
-        .openOn(mymap);
+        .openOn(mymap);*/
         
     query(myip.toString(), function (whois) {
         showModal(myip.toString(), whois);
@@ -144,8 +146,8 @@ let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText)
 
 window.onload = function () {
     if (myip.toString() !== "0.0.0.0") {
-        L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap)
-        .bindPopup("You are here.<br/>" + myip).openPopup();
+        marker = L.marker(getLatLng(mymap, castLPoint(myip.pPoint), 0.5)).addTo(mymap);
+        marker.bindPopup("You are here.<br/>" + myip).openPopup();
     }
 }
 
@@ -170,10 +172,12 @@ export function addMarkerForIP ( searchString:string ) {
         //L.marker(latlng).addTo(mymap);
         mymap.panTo(latlng);
         mymap.setView(latlng, 16);
-        popup
+        marker && mymap.removeLayer(marker);
+        marker = L.marker(latlng).addTo(mymap);
+        /*popup
             .setLatLng(latlng)
             .setContent(ip.toString())
-            .openOn(mymap);
+            .openOn(mymap);*/
         query(ip.toString(), function (whois) {
             showModal(ip.toString(), whois);
         });
@@ -184,10 +188,12 @@ export function addMarkerForIP ( searchString:string ) {
             let latlng: L.LatLng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
             mymap.panTo(latlng);
             mymap.setView(latlng, 16);
-            popup
+            marker && mymap.removeLayer(marker);
+            marker = L.marker(latlng).addTo(mymap);
+            /*popup
                 .setLatLng(latlng)
                 .setContent(ip.toString())
-                .openOn(mymap);
+                .openOn(mymap);*/
 
             query(ip.toString(), function (whois) {
                 showModal(ip.toString(), whois);

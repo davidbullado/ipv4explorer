@@ -31,9 +31,11 @@ a {
 }
 
 #search input {
-    height: 36px;
-    z-index: 1000;
     position: absolute;
+    height: 36px;
+    width: 300px;
+    z-index: 1000;
+    
     left: 50%;
     transform: translate(-50%, 0%);
     text-align: center;
@@ -152,10 +154,8 @@ a {
 #footer {
     position: fixed;
     bottom: 0;
-    background-color: #ffffff;
-    font-size: 50%;
-    color: #333131;
-    height: 16.5px;
+    font-size: 75%;
+    color: #b9b9b9;
     padding: 0;
     z-index: 500;
     box-sizing: border-box;
