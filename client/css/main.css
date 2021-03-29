@@ -20,7 +20,7 @@ a {
 	position: static !important;
 }
 
-#ip {
+.hidden {
     display: none;
 }
 
