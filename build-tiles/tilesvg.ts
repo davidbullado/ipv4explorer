@@ -8,30 +8,31 @@ function getColorFromWhois ({whois, designation}) {
     designation = "void";
   }
   var fillRect = ""; 
-  
+
   switch (whois) {
     case 'IANA':
       fillRect="#f0f0f0";
       break;
-    case 'APNIC':
+    case 'ASIA':
       fillRect="#EC3232";
       break;
-    case 'RIPE':
+    case 'EUROPE':
       fillRect="#6320EE";
       break;
-    case 'AFRINIC':
+    case 'AFRICA':
       fillRect="#31B793";
       break;
-    case 'ARIN':
+    case 'NORTH AMERICA':
       fillRect="#FF9F1C";
       break;
-    case 'LACNIC':
+    case 'LATIN AMERICA':
       fillRect="#FFFCF2";
       break;
     default:
      fillRect="#FFFFFF";
   }
-  
+
+
   fillRect = colorObjectToString( meanColor(colorStringToObject(fillRect), stringToColour(designation)) );
 
   return fillRect;
@@ -257,7 +258,27 @@ export function getXYTile (point) {
   }*/
   // list all Regional Internet Registries where my ip belong
   const resWhois = ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal } );
-  let res= {x: point.x, y: point.y, z: point.z, desc: null, asn: null, whois: resWhois[0].whois, date: null, ip: strIP, ipEnd: ipTile.getLastIPMask(point.z * 2).pString};
+  let whois: string = resWhois[0].whois;
+
+  switch (whois) {
+    case 'APNIC':
+      whois="ASIA";
+      break;
+    case 'RIPE':
+      whois="EUROPE";
+      break;
+    case 'AFRINIC':
+      whois="AFRICA";
+      break;
+    case "ARIN":
+      whois="NORTH AMERICA";
+      break;
+    case 'LACNIC':
+      whois="LATIN AMERICA";
+      break;
+  }
+
+  let res= {x: point.x, y: point.y, z: point.z, desc: null, asn: null, whois: whois, date: null, ip: strIP, ipEnd: ipTile.getLastIPMask(point.z * 2).pString};
   
   if ( point.z > 5 ) {
       res.desc = getCountries(ipTile.pVal,point.z) ;
@@ -711,8 +732,8 @@ function tileConstructSVG (coord, z_level, zinit) {
     return bloc;
   }
 
-  let designationBloc = customBloc(designation, 25, "middle", 190, 128, 15, 13, textcolor)
-  let asnBloc = asn && asn.length ? customBloc(asn, 35, "middle", 220, 128, 15, 10, textcolor) : "";
+  let designationBloc = customBloc(designation, 25, "middle", 156, 128, 15, 13, textcolor)
+  let asnBloc = asn && asn.length ? customBloc(asn, 35, "middle", 190, 128, 15, 10, textcolor) : "";
 
   return `
 
@@ -720,19 +741,19 @@ function tileConstructSVG (coord, z_level, zinit) {
 
   <rect x="${rect.x}" y="${rect.y}" width="${rect.width}" height="${rect.height}" 
           rx="15" ry="15" fill="${fillRect}" />
-  <text text-anchor="middle" x="128" y="64" font-size="22" fill="${textcolor}" >
-    ${whois}
-  </text>
-  <text text-anchor="middle" x="128" y="128" font-size="30" fill="${textcolor}">
+  <text text-anchor="left" x="12" y="30" font-size="19" fill="${textcolor}">
     ${currentTile.ip}
   </text>
-  <text text-anchor="middle" x="128" y="148" font-size="14" fill="${textcolor}">
-    ${currentTile.ipEnd}
+  <text text-anchor="middle" x="128" y="128" font-size="28" fill="${textcolor}" >
+    ${whois}
   </text>
   ${designationBloc}
   ${asnBloc}
-  <text text-anchor="end" x="240" y="240" font-size="16" fill="${textcolor}">
+  <!--text text-anchor="end" x="240" y="240" font-size="16" fill="${textcolor}">
     ${date}
+  </text-->
+  <text text-anchor="end" x="240" y="240" font-size="19" fill="${textcolor}">
+    ${currentTile.ipEnd}
   </text>
   ${rectJoin}
   ${stroke}
