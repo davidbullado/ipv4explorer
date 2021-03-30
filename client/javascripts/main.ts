@@ -4,7 +4,7 @@ import * as L from "leaflet";
 let mymap: L.Map = L.map("mapid").fitWorld();
 
 let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
-let initZoomLevel = parseInt(document.getElementById("zoomlevel").innerText) || 0;
+let initZoomLevel = parseInt(document.getElementById("zoomlevel").innerText) || 2;
 
 L.tileLayer("/tiles/{z}/{x}/{y}", {
 	maxZoom: 16,
