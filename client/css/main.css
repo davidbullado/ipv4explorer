@@ -20,14 +20,18 @@ a {
 	position: static !important;
 }
 
-#ip {
+.hidden {
     display: none;
+}
+
+.menu {
+    margin: 7px 14px;
 }
 
 .whois {
     white-space: pre;
     font-family: 'Roboto Mono', monospace;
-    margin: 0 4%;
+    background-color: #f5f5f5;
 }
 
 #search input {
@@ -63,12 +67,16 @@ a {
 }
 
 #show.mini {
-    right: 1%;
-    top:50%;
+    top: auto;
+    left: 50%;
+    bottom:3%;
     width: 380px;
-    height: 80%;
+    max-height: 80%;
+    transform: translate(-50%, -50%);
+}
+
+.mini .whois {
     font-size:50%;
-    transform: translate(0%, -50%);
 }
 
 @media (max-width : 800px) {
@@ -76,8 +84,6 @@ a {
         top: auto;
         left: 50%;
         width: 95%;
-        height: 50%;
-        font-size:50%;
         bottom:3%;
         transform: translate(-50%, 0%);
         max-width: 380px;
@@ -91,6 +97,10 @@ a {
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 1500;
+}
+
+.full .whois {
+    font-size:80%;
 }
 
 @media (max-width : 800px) {
@@ -109,6 +119,7 @@ a {
 .content{
     flex: 1;
     overflow: auto;
+    margin: 7px 14px;
 }
 
 .toolbar {
@@ -117,9 +128,10 @@ a {
     height: 40px;
 }
 
-.toolbar h2 {
+.toolbar ip {
     flex: 1;
-    margin: auto 0 auto 4%;
+    font-weight: bold;
+    margin: auto 0 auto 14px;
 }
 
 .toolbar button {
@@ -133,22 +145,6 @@ a {
 }
 .toolbar button:hover {
     color: #00B7FF;
-}
-
-.mini > .toolbar > .maximize {
-    display: block;
-}
-
-.mini > .toolbar > .minimize {
-    display: none;
-}
-
-.full > .toolbar > .maximize {
-    display: none;
-}
-
-.full > .toolbar > .minimize {
-    display: block;
 }
 
 #footer {

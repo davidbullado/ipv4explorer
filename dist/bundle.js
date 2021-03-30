@@ -133,6 +133,8 @@ __webpack_require__(/*! ../css/main.css */ "./client/css/main.css");
 __webpack_require__(/*! ./main */ "./client/javascripts/main.ts");
 var main_1 = __webpack_require__(/*! ./main */ "./client/javascripts/main.ts");
 exports.addMarkerForIP = main_1.addMarkerForIP;
+var main_2 = __webpack_require__(/*! ./main */ "./client/javascripts/main.ts");
+exports.whoisClick = main_2.whoisClick;
 
 
 /***/ }),
@@ -207,9 +209,7 @@ function onMapClick(e) {
         .setLatLng(e.latlng)
         .setContent(myip.toString())
         .openOn(mymap);*/
-    query(myip.toString(), function (whois) {
-        showModal(myip.toString(), whois);
-    });
+    showModal(myip.toString());
     updateQueryParamIp(myip.toString());
 }
 function getQueryParams() {
@@ -286,10 +286,10 @@ window.onload = function () {
         marker.bindPopup("You are here.<br/>" + myip).openPopup();
     }
 };
-function showModal(search, content) {
+function showModal(search) {
     document.getElementById("show").className = "mini";
-    document.querySelector("#show h2").textContent = "Whois for " + search;
-    document.querySelector("#show .whois").textContent = content;
+    document.querySelector("#show ip").textContent = search;
+    document.querySelector("#show .whois").textContent = "";
 }
 function addMarkerForIP(searchString) {
     var ipReg = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
@@ -297,8 +297,8 @@ function addMarkerForIP(searchString) {
     var nsReg = "^[a-zA-Z0-9][a-zA-Z0-9-]{1,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$";
     if ((new RegExp(fullReg)).test(searchString)) {
         var ipString = searchString;
-        var ip_1 = index_1.IPv4.newIPv4FromString(ipString);
-        var latlng = getLatLng(mymap, castLPoint(ip_1.pPoint), 0.5);
+        var ip = index_1.IPv4.newIPv4FromString(ipString);
+        var latlng = getLatLng(mymap, castLPoint(ip.pPoint), 0.5);
         //L.marker(latlng).addTo(mymap);
         mymap.panTo(latlng);
         mymap.setView(latlng, 16);
@@ -308,9 +308,7 @@ function addMarkerForIP(searchString) {
             .setLatLng(latlng)
             .setContent(ip.toString())
             .openOn(mymap);*/
-        query(ip_1.toString(), function (whois) {
-            showModal(ip_1.toString(), whois);
-        });
+        showModal(ip.toString());
     }
     else if ((new RegExp(nsReg)).test(searchString)) {
         var ns = searchString;
@@ -325,15 +323,28 @@ function addMarkerForIP(searchString) {
                 .setLatLng(latlng)
                 .setContent(ip.toString())
                 .openOn(mymap);*/
-            query(ip.toString(), function (whois) {
-                showModal(ip.toString(), whois);
-            });
+            showModal(ip.toString());
         });
     }
     else {
     }
 }
 exports.addMarkerForIP = addMarkerForIP;
+function whoisClick() {
+    var whois = document.querySelector("#show .whois").textContent;
+    if (whois !== "") {
+        document.getElementById("show").className = "mini";
+        document.querySelector("#show .whois").textContent = "";
+    }
+    else {
+        document.getElementById("show").className = "full";
+        var ip = document.querySelector("#show ip").textContent;
+        query(ip, function (whois) {
+            document.querySelector("#show .whois").textContent = whois;
+        });
+    }
+}
+exports.whoisClick = whoisClick;
 
 
 /***/ }),
@@ -501,7 +512,7 @@ exports = module.exports = __webpack_require__(/*! ../../node_modules/css-loader
 
 
 // module
-exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n#ip {\n    display: none;\n}\n\n.whois {\n    white-space: pre;\n    font-family: 'Roboto Mono', monospace;\n    margin: 0 4%;\n}\n\n#search input {\n    position: absolute;\n    height: 36px;\n    width: 300px;\n    z-index: 1000;\n    \n    left: 50%;\n    transform: translate(-50%, 0%);\n    text-align: center;\n    border: 1px solid #777;\n    border-radius: 5px;\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;\n    font-size: large;\n    margin-top: 1%;\n}\n\n.on {\n    display:block;\n}\n\n#show {\n    position: absolute;\n    border-radius: 5px;\n    background-color:white;\n    z-index: 999;\n    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);\n    /*transition: 1s;*/\n    display: flex;\n    flex-direction: column;\n    border : 1px solid black;\n}\n\n#show.mini {\n    right: 1%;\n    top:50%;\n    width: 380px;\n    height: 80%;\n    font-size:50%;\n    transform: translate(0%, -50%);\n}\n\n@media (max-width : 800px) {\n    #show.mini {\n        top: auto;\n        left: 50%;\n        width: 95%;\n        height: 50%;\n        font-size:50%;\n        bottom:3%;\n        transform: translate(-50%, 0%);\n        max-width: 380px;\n    }\n}\n\n#show.full {\n    width: 800px;\n    height: 600px;\n    top: 50%;\n    left: 50%;\n    transform: translate(-50%, -50%);\n    z-index: 1500;\n}\n\n@media (max-width : 800px) {\n    #show.full {\n        width: 95%;\n        height: 95%;\n        top: 50%;\n        transform: translate(-50%, -50%);\n    }\n}\n\n#show.off{\n    display:none;\n}\n\n.content{\n    flex: 1;\n    overflow: auto;\n}\n\n.toolbar {\n    display:flex;\n    justify-content: flex-end;\n    height: 40px;\n}\n\n.toolbar h2 {\n    flex: 1;\n    margin: auto 0 auto 4%;\n}\n\n.toolbar button {\n    background-color: transparent;\n    border: none;\n    color: grey;\n    cursor: pointer;\n}\n.toolbar button.close {\n    font-size:20px;\n}\n.toolbar button:hover {\n    color: #00B7FF;\n}\n\n.mini > .toolbar > .maximize {\n    display: block;\n}\n\n.mini > .toolbar > .minimize {\n    display: none;\n}\n\n.full > .toolbar > .maximize {\n    display: none;\n}\n\n.full > .toolbar > .minimize {\n    display: block;\n}\n\n#footer {\n    position: fixed;\n    bottom: 0;\n    font-size: 75%;\n    color: #b9b9b9;\n    padding: 0;\n    z-index: 500;\n    box-sizing: border-box;\n    line-height: 3px;\n    width: 100%;\n    opacity: 0.5;\n}", ""]);
+exports.push([module.i, "html, body {\n    margin: 0;\n    padding: 0;\n    font: 14px \"Lucida Grande\", Helvetica, Arial, sans-serif;\n    background-color: black;\n    overflow:hidden;\n}\n\nhtml, body, #mapid {\n    height: 100%;\n    width: 100vw;\n}\n\na {\n    color: #00B7FF;\n}\n\n#mapid {\n\tbackground-color: black;\n\tposition: static !important;\n}\n\n.hidden {\n    display: none;\n}\n\n.menu {\n    margin: 7px 14px;\n}\n\n.whois {\n    white-space: pre;\n    font-family: 'Roboto Mono', monospace;\n    background-color: #f5f5f5;\n}\n\n#search input {\n    position: absolute;\n    height: 36px;\n    width: 300px;\n    z-index: 1000;\n    \n    left: 50%;\n    transform: translate(-50%, 0%);\n    text-align: center;\n    border: 1px solid #777;\n    border-radius: 5px;\n    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2) inset;\n    font-size: large;\n    margin-top: 1%;\n}\n\n.on {\n    display:block;\n}\n\n#show {\n    position: absolute;\n    border-radius: 5px;\n    background-color:white;\n    z-index: 999;\n    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);\n    /*transition: 1s;*/\n    display: flex;\n    flex-direction: column;\n    border : 1px solid black;\n}\n\n#show.mini {\n    top: auto;\n    left: 50%;\n    bottom:3%;\n    width: 380px;\n    max-height: 80%;\n    transform: translate(-50%, -50%);\n}\n\n.mini .whois {\n    font-size:50%;\n}\n\n@media (max-width : 800px) {\n    #show.mini {\n        top: auto;\n        left: 50%;\n        width: 95%;\n        bottom:3%;\n        transform: translate(-50%, 0%);\n        max-width: 380px;\n    }\n}\n\n#show.full {\n    width: 800px;\n    height: 600px;\n    top: 50%;\n    left: 50%;\n    transform: translate(-50%, -50%);\n    z-index: 1500;\n}\n\n.full .whois {\n    font-size:80%;\n}\n\n@media (max-width : 800px) {\n    #show.full {\n        width: 95%;\n        height: 95%;\n        top: 50%;\n        transform: translate(-50%, -50%);\n    }\n}\n\n#show.off{\n    display:none;\n}\n\n.content{\n    flex: 1;\n    overflow: auto;\n    margin: 7px 14px;\n}\n\n.toolbar {\n    display:flex;\n    justify-content: flex-end;\n    height: 40px;\n}\n\n.toolbar ip {\n    flex: 1;\n    font-weight: bold;\n    margin: auto 0 auto 14px;\n}\n\n.toolbar button {\n    background-color: transparent;\n    border: none;\n    color: grey;\n    cursor: pointer;\n}\n.toolbar button.close {\n    font-size:20px;\n}\n.toolbar button:hover {\n    color: #00B7FF;\n}\n\n#footer {\n    position: fixed;\n    bottom: 0;\n    font-size: 75%;\n    color: #b9b9b9;\n    padding: 0;\n    z-index: 500;\n    box-sizing: border-box;\n    line-height: 3px;\n    width: 100%;\n    opacity: 0.5;\n}", ""]);
 
 // exports
 

@@ -4,7 +4,7 @@ import * as L from "leaflet";
 let mymap: L.Map = L.map("mapid").fitWorld();
 
 let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
-let initZoomLevel = parseInt(document.getElementById("zoomlevel").innerText) || 0;
+let initZoomLevel = parseInt(document.getElementById("zoomlevel").innerText) || 2;
 
 L.tileLayer("/tiles/{z}/{x}/{y}", {
 	maxZoom: 16,
@@ -83,10 +83,8 @@ function onMapClick(e: any):void {
         .setLatLng(e.latlng)
         .setContent(myip.toString())
         .openOn(mymap);*/
-        
-    query(myip.toString(), function (whois) {
-        showModal(myip.toString(), whois);
-    });
+
+    showModal(myip.toString());
 
     updateQueryParamIp(myip.toString());
 }
@@ -188,10 +186,10 @@ window.onload = function () {
 
 
 
-function showModal (search:string, content:string) {
+function showModal (search:string) {
     document.getElementById("show").className = "mini";
-    document.querySelector("#show h2").textContent = "Whois for " + search;
-    document.querySelector("#show .whois").textContent = content;
+    document.querySelector("#show ip").textContent = search;
+    document.querySelector("#show .whois").textContent = "";
 }
 
 
@@ -214,9 +212,7 @@ export function addMarkerForIP ( searchString:string ) {
             .setLatLng(latlng)
             .setContent(ip.toString())
             .openOn(mymap);*/
-        query(ip.toString(), function (whois) {
-            showModal(ip.toString(), whois);
-        });
+        showModal(ip.toString());
     } else if ((new RegExp(nsReg)).test(searchString)) {
         let ns = searchString;
         queryNS(ns, function (ipString) {
@@ -230,13 +226,23 @@ export function addMarkerForIP ( searchString:string ) {
                 .setLatLng(latlng)
                 .setContent(ip.toString())
                 .openOn(mymap);*/
-
-            query(ip.toString(), function (whois) {
-                showModal(ip.toString(), whois);
-            });
-            
+            showModal(ip.toString());
         });
     } else {
 
+    }
+}
+
+export function whoisClick (){
+    let whois: string = document.querySelector("#show .whois").textContent;
+    if (whois !== "") {
+        document.getElementById("show").className = "mini";
+        document.querySelector("#show .whois").textContent = "";
+    } else {
+        document.getElementById("show").className = "full";
+        let ip: string = document.querySelector("#show ip").textContent;
+        query(ip, function (whois) {
+            document.querySelector("#show .whois").textContent = whois;
+        });
     }
 }

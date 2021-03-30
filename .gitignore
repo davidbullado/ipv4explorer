@@ -273,3 +273,13 @@ IP2LOCATION-LITE-DB1.CSV
 wwwroot/app/**/*.js
 wwwroot/app/**/*.map
 dist/bundle.js
+db1lite.zip
+.gitignore
+.gitignore
+ipv4-address-space.csv
+LICENSE_LITE.TXT
+.gitignore
+README_LITE.TXT
+DBASNLITE.zip
+LICENSE-CC-BY-SA-4.0.TXT
+dist/bundle.js
