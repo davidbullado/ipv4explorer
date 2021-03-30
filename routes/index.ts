@@ -37,14 +37,12 @@ router.get('/', (req: express.Request, res: express.Response) => {
 router.get('/@zoom=:zoom&ip=:ip', (req: express.Request, res: express.Response) => {
     var ip = req.params.ip;
     var zoom = req.params.zoom;
-    console.log("zoom: "+zoom);
     res.render('index', { title: 'IPv4 '+ip, myip: ip, zoomlevel:zoom});
 });
 
 router.get('/@ip=:ip&zoom=:zoom', (req: express.Request, res: express.Response) => {
     var ip = req.params.ip;
     var zoom = req.params.zoom;
-    console.log("zoom: "+zoom);
     res.render('index', { title: 'IPv4 '+ip, myip: ip, zoomlevel:zoom});
 });
 
