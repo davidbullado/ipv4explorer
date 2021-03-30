@@ -1,7 +1,8 @@
-div.toolbar
-    h2 
-    button.minimize(onclick='document.getElementById("show").className = "mini";') 🗕
-    button.maximize(onclick='document.getElementById("show").className = "full";') 🗖
-    button.close(onclick='document.getElementById("show").className = "off";') ×
-div.content
-    div.whois
+div#show.off
+    div.toolbar
+        ip
+        button.close(onclick='document.getElementById("show").className = "off";') ×
+    div.menu
+        include button/whois.pug
+    div.content
+        div.whois

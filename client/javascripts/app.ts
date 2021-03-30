@@ -4,3 +4,4 @@ require('../css/main.css');
 require("./main");
 
 export {addMarkerForIP} from "./main";
+export {whoisClick} from "./main";
