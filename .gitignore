@@ -284,3 +284,5 @@ DBASNLITE.zip
 LICENSE-CC-BY-SA-4.0.TXT
 dist/bundle.js
 .env
+build-tiles/ipv4-address-space.csv
+
