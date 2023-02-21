@@ -60,12 +60,13 @@ app.use((err: any, req, res, next) => {
     });
 });
 
+/*
 var options = {
     key: fs.readFileSync('./server.key'),
     cert: fs.readFileSync('./server.crt')
 }
 
-/*http2
+http2
   .createServer(options, app)
   .listen(3000, ()=>{
     debug('Express server listening on port 3000');
@@ -74,7 +75,7 @@ var options = {
 
 app.set('port', process.env.PORT || 3000);
 
-var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
+var server = app.listen(app.get('port'), '0.0.0.0', null, function () {
     const { port } = server.address() as AddressInfo;
     debug('Express server listening on port ' + port);
 });
