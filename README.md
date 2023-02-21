@@ -16,6 +16,15 @@ By zooming in a little more, you can see the ISPs appear. So, with just a glance
 ### How it works
 I rely on data from iana.org and ip2location to dynamically generate SVG tiles that are displayed using Leaflet. The data is regularly refreshed.
 
+### Features
+
+To quickly see who owns an IP address, you can enter the address in a search bar:
+![image](https://user-images.githubusercontent.com/10708817/220418306-6c5f6b8d-0c55-4e1e-b596-512ec97595b2.png)
+
+You also have the option to do a WHOIS lookup on the selected block:  
+![image](https://user-images.githubusercontent.com/10708817/220418744-010627a7-dc1a-49a1-b167-ce077f3a6f12.png)
+
+
 ### Why don't you use a Hilbert Curve?
 The reason is that when I started this project, I was not aware of Hilbert's work, so I found my own way of representing a set of numbers with a two-dimensional image. The representation used is very similar to Hilbert's, and in my opinion, more logical. I will try to implement a switch to switch between representations in the near future.
 
