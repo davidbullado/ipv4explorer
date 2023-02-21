@@ -27,7 +27,7 @@
     "to": "^0.2.9",
     "update": "^0.7.4",
     "url": "^0.11.0",
-    "whois": "^2.5.10"
+    "whois": "^2.13.6"
   },
   "devDependencies": {
     "@types/chai": "^4.1.3",
