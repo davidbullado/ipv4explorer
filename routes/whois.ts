@@ -28,8 +28,8 @@ router.get("/:ip", (req: express.Request, res: express.Response) => {
             iWhois = filterOnIpWhois(myip, myip);
         }
         let command: string;
-        if (iWhois.length > 0) {
-            command = "whois -s "+iWhois[0].host+" "+ip;
+        if (iWhois.length > 1) {
+            command = "whois -h "+iWhois[0].host+" r = "+ip;
         } else {
             command = "whois "+ip;
         }
