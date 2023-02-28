@@ -1,8 +1,8 @@
 import { IPv4 } from "../../ipv4/index";
 import * as L from "leaflet";
+import {control, LatLngBounds} from "leaflet";
 
 let mymap: L.Map = L.map("mapid").fitWorld();
-
 let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
 let initZoomLevel = parseInt(document.getElementById("zoomlevel").innerText) || 2;
 
@@ -69,24 +69,60 @@ function castLPoint(p: IPoint): L.Point {
 
 var popup: L.Popup = L.popup();
 var marker: L.Marker;
+var selection;
 
 function onMapClick(e: any):void {
     
-    const mypoint: L.Point = mymap.project(e.latlng, mymap.getZoom());
-    const myip: IPv4 = IPv4.newIPv4FromPoint( getAbsolutePoint(mymap, e.latlng) );
+    const mypoint: L.Point = getAbsolutePoint(mymap, e.latlng);
+    const myip: IPv4 = IPv4.newIPv4FromPoint(mypoint);
 
     document.getElementById("show").className = "off";
-    
+
     marker && mymap.removeLayer(marker);
-    marker = L.marker(e.latlng).addTo(mymap);
-    /*popup
-        .setLatLng(e.latlng)
-        .setContent(myip.toString())
-        .openOn(mymap);*/
+    selection && mymap.removeLayer(selection);
 
-    showModal(myip.toString());
 
-    updateQueryParamIp(myip.toString());
+    if (e.target._zoom <= 4) {
+        let ipfrom = myip.toString().split('.');
+        ipfrom[1] = "0";
+        ipfrom[2] = "0";
+        ipfrom[3] = "0";
+        let ipto = myip.toString().split('.');
+        ipto[1] = "255";
+        ipto[2] = "255";
+        ipto[3] = "255";
+        let ipf: IPv4 = IPv4.newIPv4FromString(ipfrom.join('.'));
+        let ipt: IPv4 = IPv4.newIPv4FromString(ipto.join('.'));
+        console.log("from :"+ipf);
+        console.log("to :"+ipto);
+        let latlngf: L.LatLng = getLatLng(mymap, castLPoint(ipf.pPoint), 0.5);
+        let latlngt: L.LatLng = getLatLng(mymap, castLPoint(ipt.pPoint), 0.5);
+        // define rectangle geographical bounds
+        let bounds = new LatLngBounds (latlngf, latlngt);
+
+        // create an orange rectangle
+        selection = L.rectangle(bounds, {color: "#ff7800", weight: 1}).addTo(mymap);
+        // zoom the map to the rectangle bounds
+        //mymap.fitBounds(bounds);
+
+        queryJson(`/info/${mypoint.x}/${mypoint.y}/${e.target._zoom}`,(r) => {
+            console.log(r);
+
+            showModal(r.ip);
+
+            updateQueryParamIp(ipf.toString());
+        });
+    } else {
+        marker = L.marker(e.latlng).addTo(mymap);
+        /*popup
+            .setLatLng(e.latlng)
+            .setContent(myip.toString())
+            .openOn(mymap);*/
+
+        showModal(myip.toString());
+
+        updateQueryParamIp(myip.toString());
+    }
 }
 
 
@@ -114,7 +150,7 @@ function updateQueryParamIp(ip: string) {
 function query(ip, callback) {
     
     var request = new XMLHttpRequest();
-    request.open('GET', '/whois/'+ip, true);
+    request.open('GET', '/whois/'+ip.replace('/','_-_'), true);
     
     request.onload = function() {
       if (request.status >= 200 && request.status < 400) {
@@ -161,6 +197,31 @@ function queryNS(ns, callback) {
     request.send();
 }
 
+
+function queryJson(url, callback) {
+
+    const request = new XMLHttpRequest();
+    request.responseType = 'json';
+    request.open('GET', url, true);
+
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 400) {
+            // Success!
+            var resp = request.response;
+            callback(resp);
+        } else {
+            // We reached our target server, but it returned an error
+            console.log('We reached our target server, but it returned an error');
+        }
+    };
+
+    request.onerror = function() {
+        // There was a connection error of some sort
+        console.log('There was a connection error of some sort');
+    };
+
+    request.send();
+}
 
 mymap.on("click", onMapClick);
 

@@ -1,7 +1,5 @@
 import { IPv4, getIPFromXYZ } from "../ipv4/index";
-import { IDataIP, ip2lite } from "../ip2lite";
-import { bisectLeft } from "d3-array";
-import { IDataIPASN } from "../ip2lite/ip2lite";
+import {getCountriesRange, getCountries, getASNs, filterOnIpWhois} from "./ipDetails";
 
 function getColorFromWhois ({whois, designation}) {
   if (!designation || designation === ""){
@@ -86,105 +84,8 @@ var stringToColour = function(str) {
     };
 }
 
-// ip2lite:
-function filterBetween(d) {
-  return d.ipRangeStart.pVal <= this.value && this.value <= d.ipRangeEnd.pVal;
-}
-// ip2lite: strictly between
-function filter(d) {
-  return (d.ipRangeStart.pVal <= this.ipStart && this.ipEnd <= d.ipRangeEnd.pVal) ||
-      (this.ipStart <= d.ipRangeStart.pVal && d.ipRangeEnd.pVal <= this.ipEnd) ||
-      d.ipRangeStart.pVal <= this.ipStart && this.ipStart <= d.ipRangeEnd.pVal ||
-      d.ipRangeStart.pVal <= this.ipEnd && this.ipEnd <= d.ipRangeEnd.pVal;
-}
 
-/**
- * Get a slice of ip/country array
- * @param ipStart first ip of a block
- * @param ipEnd last ip of a block
- */
-function getCountriesRange(ipStart: number, ipEnd: number): IDataIP[] {
-  return getCountriesRangeForIndex(ip2lite.ipArrayIdx, ip2lite.ipArray, ipStart, ipEnd);
-}
-function getASNsRange(ipStart: number, ipEnd: number): IDataIPASN[] {
-  return getCountriesRangeForIndex(ip2lite.ipArrayASNIdx, ip2lite.ipArrayASN, ipStart, ipEnd);
-}
-/**
- * Get a slice of ip/country array
- * @param ipStart first ip of a block
- * @param ipEnd last ip of a block
- */
-function getCountriesRangeForIndex(idx: number[], arr: any[], ipStart: number, ipEnd: number): any[] {
-  // instead of doing an array.filter, which is time consuming,
-  // we use bisect on an index.
-  const idLo = bisectLeft( idx, ipStart ) ;
-  const idHi = bisectLeft( idx, ipEnd ) ;
-  const myRange = arr.slice(idLo, idHi + 1);
 
-  return myRange;
-}
-
-function aggregateCountryRangeByLabel(myRange: IDataIP[]) {
-
-  const countries = new Map();
-  myRange.forEach((r) => {
-      countries.set(r.countryCode, r.countryLabel);
-  });
-  return countries;
-}
-
-function aggregateASNRangeByLabel(myRange: IDataIPASN[]) {
-
-  const asns = new Map();
-  myRange.forEach((r) => {
-      asns.set(r.ASNName, r.ASNName);
-  });
-  return asns;
-}
-
-function getCountries(ipValue: number, zoom: number) {
-  let res: string ;
-  let ipEnd: IPv4;
-
-  // get last ip of the block given zoom
-  ipEnd = (new IPv4(ipValue)).getLastIPMask(zoom * 2);
-
-  const m = aggregateCountryRangeByLabel(getCountriesRange(ipValue, ipEnd.pVal));
-
-  if ( m.size === 1 ) {
-      // get the full country name
-      res = m.values().next().value;
-  } else {
-      // get the country codes
-      const arrCountryCode = Array.from(m.keys());
-      // concat them into csv with a trailing ... if more than 4 countries.
-      res = arrCountryCode.slice(0, 4).join(", ") + (m.size > 4 ? ", " + arrCountryCode[4] + ", ..." : "");
-  }
-
-  return res;
-}
-
-function getASNs(ipValue: number, zoom: number): string {
-  let res: string = "";
-  let ipEnd: IPv4;
-
-  // get last ip of the block given zoom
-  ipEnd = (new IPv4(ipValue)).getLastIPMask(zoom * 2);
-
-  const m = aggregateASNRangeByLabel(getASNsRange(ipValue, ipEnd.pVal));
-
-  if ( m.size === 1 ) {
-      // get the full asn name
-      res = m.values().next().value;
-  } else {
-      // get the asn
-      const arrASN = Array.from(m.keys());
-      // concat them into csv with a trailing ... if more than 2 asn.
-      res = arrASN.slice(0, 1).join(", ") + (m.size > 2 ? ", +" + (m.size-1) +" ASNs ..." : "");
-  }
-
-  return res;
-}
 
 function moreThanOneCountry(ipValue: number, zoom: number) {
   let moreThanOne = false;
@@ -203,7 +104,7 @@ function moreThanOneCountry(ipValue: number, zoom: number) {
 }
 
 
-export function getXYZTileInfo (point,ipWhois){
+export function getXYZTileInfo (point){
   const ipTile: IPv4 = getIPFromXYZ(point.x,point.y,point.z);
 
   if (!ipTile) {
@@ -216,7 +117,8 @@ export function getXYZTileInfo (point,ipWhois){
       strIP += "/" + (point.z * 2) + "\n";
   }
   // list all Regional Internet Registries where my ip belong
-  const resWhois = ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal } );
+  const resWhois = filterOnIpWhois(ipTile, ipTile.getLastIPMask(point.z * 2));
+
   let res= {x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP};
   
   if ( point.z > 5 ) {
@@ -257,7 +159,7 @@ export function getXYTile (point) {
       strIP += "/" + (point.z * 2) + "\n";
   }*/
   // list all Regional Internet Registries where my ip belong
-  const resWhois = ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal } );
+  const resWhois = filterOnIpWhois(ipTile, ipTile.getLastIPMask(point.z * 2));
   let whois: string = resWhois[0].whois;
 
   switch (whois) {
@@ -278,7 +180,7 @@ export function getXYTile (point) {
       break;
   }
 
-  let res= {x: point.x, y: point.y, z: point.z, desc: null, asn: null, whois: whois, date: null, ip: strIP, ipEnd: ipTile.getLastIPMask(point.z * 2).pString};
+  let res= {x: point.x, y: point.y, z: point.z, desc: null, asn: null, whois: whois, date: null, ip: strIP, ipEnd: ipTile.getLastIPMask(point.z * 2).pString, svg:null};
   
   if ( point.z > 5 ) {
       res.desc = getCountries(ipTile.pVal,point.z) ;
@@ -310,7 +212,7 @@ function isTileInfoMoreThanOne (point) {
       if ( point.z > 5 ) {
           return moreThanOneCountry(ipTile.pVal, point.z);
       } else {
-          const resWhois = ip2lite.ipWhois.filter(filter, { ipStart: ipTile.pVal, ipEnd: ipTile.getLastIPMask(point.z * 2).pVal } );
+          const resWhois = filterOnIpWhois(ipTile, ipTile.getLastIPMask(point.z * 2));
           let moreThanOne = false;
           if (resWhois.length > 1) {
               const myVal = resWhois[0].designation ;
@@ -735,7 +637,7 @@ function tileConstructSVG (coord, z_level, zinit) {
   let designationBloc = customBloc(designation, 25, "middle", 156, 128, 15, 13, textcolor)
   let asnBloc = asn && asn.length ? customBloc(asn, 35, "middle", 190, 128, 15, 10, textcolor) : "";
 
-  return `
+  currentTile.svg = `
 
   ${join}
 
@@ -759,45 +661,20 @@ function tileConstructSVG (coord, z_level, zinit) {
   ${stroke}
   
 `;
+  return currentTile;
 }
 
 function tileConstruct ( coord) {
   
-  let svgcontent ;
+  let tile ;
 
   if (isTileInfoMoreThanOne(coord)) {
-    svgcontent = tileConstructSubSVG ( coord, 2, coord.z);
+    tile = tileConstructSubSVG ( coord, 2, coord.z);
   } else {
-    svgcontent = tileConstructSVG ( coord, 3, coord.z);
+    tile = tileConstructSVG ( coord, 3, coord.z);
   }
 
-  return `<?xml version="1.0" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
-  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-
-<svg width="256px" height="256px" version="1.1"
-     viewBox="0 0 256 256" preserveAspectRatio="none"
-     xmlns="http://www.w3.org/2000/svg" shape-rendering="geometricPrecision">
-  <defs>
-  <style type="text/css">
-    <![CDATA[
-    text {
-      font-family: "Open Sans",arial,x-locale-body,sans-serif;
-    
-    }
-    line{
-      stroke: black;
-      stroke-width: 1;
-    }
-    circle{
-      fill: black;
-    }
-    ]]>
-  </style>
-  </defs>
-  ${svgcontent}
-</svg>
-`;
+  return tile;
 }
 
 function tileConstructSubSVG (coord, rec, zinit) {
@@ -860,29 +737,30 @@ myNeighborsEquals = [
   const offset = 0 ;
   const sizeblock = initSize-offset;
 
-  return `
+  currentTile.svg = `
   ${join}
   <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${offset} -${offset} 512 512" preserveAspectRatio="none">
     <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
-      ${topLeft}
+      ${topLeft.svg}
     </svg>
   </svg>
   <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${initSize+offset} -${offset} 512 512" preserveAspectRatio="none">
     <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
-      ${topRight}
+      ${topRight.svg}
     </svg>
   </svg>
   <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${initSize+offset} -${initSize+offset} 512 512" preserveAspectRatio="none">
     <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
-      ${bottomRight}
+      ${bottomRight.svg}
     </svg>
   </svg>
   <svg width="${sizeblock}px" height="${sizeblock}px" viewBox="-${offset} -${initSize+offset} 512 512" preserveAspectRatio="none">
     <svg width="256px" height="256px" viewBox="0 0 256 256" preserveAspectRatio="none">
-      ${bottomLeft}
+      ${bottomLeft.svg}
     </svg>
   </svg>
-`;
+`
+  return currentTile;
 }
 
 export { tileConstruct }
