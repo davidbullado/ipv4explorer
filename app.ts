@@ -8,6 +8,7 @@ import routes from "./routes/index";
 import tiles from "./routes/tiles";
 import whois from "./routes/whois";
 import nslookup from "./routes/nslookup";
+import info from "./routes/info";
 
 import { loadData } from "./ip2lite";
 import { AddressInfo } from 'net';
@@ -28,6 +29,7 @@ app.use('/', routes);
 app.use('/tiles', tiles);
 app.use('/whois', whois);
 app.use('/nslookup', nslookup);
+app.use('/info', info);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -60,12 +62,13 @@ app.use((err: any, req, res, next) => {
     });
 });
 
+/*
 var options = {
     key: fs.readFileSync('./server.key'),
     cert: fs.readFileSync('./server.crt')
 }
 
-/*http2
+http2
   .createServer(options, app)
   .listen(3000, ()=>{
     debug('Express server listening on port 3000');
@@ -74,7 +77,8 @@ var options = {
 
 app.set('port', process.env.PORT || 3000);
 
-var server = app.listen(app.get('port'), '127.0.0.1', null, function () {
+var server = app.listen(app.get('port'), '0.0.0.0', null, function () {
     const { port } = server.address() as AddressInfo;
     debug('Express server listening on port ' + port);
+    console.log('Express server listening on port ' + port);
 });

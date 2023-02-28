@@ -132,6 +132,22 @@ export class IPv4 {
     static getIntValue(ip_b3: number, ip_b2: number, ip_b1: number, ip_b0: number): number {
         return ip_b3 * IPv4.pow_256_3 + ip_b2 * IPv4.pow_256_2 + ip_b1 * 256 + ip_b0;
     }
+
+    static newIPv4FromRange(s:string): IPv4[] {
+
+        let ipReg: string = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
+        let fullReg: string = "^(" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + ")/([0-9]{1,2})$";
+
+
+        let regExpExecArray = (new RegExp(fullReg)).exec(s);
+        if (regExpExecArray) {
+            let r = regExpExecArray[6];
+            let ipstart = IPv4.newIPv4FromString(regExpExecArray[1]);
+            let ipend = new IPv4(ipstart.ipval+(Math.pow(2,  parseInt(r))-1));
+            return [ipstart, ipend];
+        }
+        return [];
+    }
 }
 
 export default IPv4;

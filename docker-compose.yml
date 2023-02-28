@@ -1,0 +1,14 @@
+version: "2"
+services:
+  node:
+    image: "node:8"
+    user: "node"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=build
+      - IP2LOCATION_TOKEN=${IP2LOCATION_TOKEN}
+    volumes:
+      - ./:/home/node/app
+    expose:
+      - "3000"
+    command: bash -c "./refresh_ip2location.sh && npm install && npm run build  && npm run start"

@@ -17,11 +17,12 @@ export interface IDataIPASN {
     ipRangeEnd: IPv4;
     ASNName: string;
 }
-interface IWhois {
+export interface IWhois {
     ip: string,
-    ipStart: number,
-    ipEnd: number,
+    ipRangeStart: IPv4,
+    ipRangeEnd: IPv4,
     whois: string,
+    host: string,
     designation: string,
     date: string
 }
@@ -33,7 +34,7 @@ let ip2lite: {
     ipWhois: IWhois[]
 } = { ipArray: null, ipArrayASN:null, ipArrayIdx: [], ipArrayASNIdx: [], ipWhois: null };
 
-var processRow = (row) => {
+var processRow = (row) : IWhois => {
     var extractDigit = new RegExp(/0*(\d+)/) ;
     var r = extractDigit.exec(row.Prefix);
     if (!r || r.length != 2){
@@ -41,6 +42,7 @@ var processRow = (row) => {
     }
     var ip = r[1]+".0.0.0";
 
+    let host = row.WHOIS;
     var whois = "";
     if (row.WHOIS.length > 0) {
         var extractWhois = new RegExp(/whois\.([a-z]+)\./);
@@ -64,6 +66,7 @@ var processRow = (row) => {
         ipRangeStart: myip,
         ipRangeEnd: myip.getLastIPMask(8),
         whois: whois,
+        host: host,
         designation: row.Designation,
         date: row.Date
     };
