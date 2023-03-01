@@ -138,7 +138,6 @@ export class IPv4 {
         let ipReg: string = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
         let fullReg: string = "^(" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + ")/([0-9]{1,2})$";
 
-
         let regExpExecArray = (new RegExp(fullReg)).exec(s);
         if (regExpExecArray) {
             let r = regExpExecArray[6];
@@ -147,6 +146,62 @@ export class IPv4 {
             return [ipstart, ipend];
         }
         return [];
+    }
+}
+
+export class IPv4Range {
+    private ipStart: IPv4;
+    private ipEnd: IPv4;
+    private range: number;
+
+    constructor(value: number = 0, range: number = 1) {
+        this.ipStart = new IPv4(value);
+        this.range = range;
+    }
+    public toString = (): string => {
+        return this.ipStart.toString()+'/'+this.range;
+    }
+
+    get pIpStart(): IPv4 {
+        return this.ipStart;
+    }
+    set pIpStart(s: IPv4) {
+        this.ipStart =  s;
+        this.ipEnd = null;
+    }
+
+    get pRange(): number {
+        return this.range;
+    }
+
+    set pRange(r: number) {
+        this.range = r;
+    }
+
+    get pIpEnd(): IPv4 {
+        if (!this.ipEnd) {
+            this.ipEnd = new IPv4(this.ipStart.pVal+(Math.pow(2,  32-this.range)-1));
+        }
+        return this.ipEnd;
+    }
+    set pIpEnd(e: IPv4) {
+        let delta = e.pVal - this.ipStart.pVal;
+        this.range = 32-Math.log2(delta+1);
+    }
+
+    static newIPv4RangeFromString(s:string): IPv4Range {
+        let ipReg: string = "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)";
+        let fullReg: string = "^(" + ipReg + "\." + ipReg + "\." + ipReg + "\." + ipReg + ")/([0-9]{1,2})$";
+
+        let regExpExecArray = (new RegExp(fullReg)).exec(s);
+        if (regExpExecArray) {
+            let r = regExpExecArray[6];
+            let res = new IPv4Range();
+            res.ipStart = IPv4.newIPv4FromString(regExpExecArray[1]);
+            res.pRange = parseInt(r);
+            return res;
+        }
+        return null;
     }
 }
 
