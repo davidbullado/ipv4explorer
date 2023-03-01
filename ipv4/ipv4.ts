@@ -147,6 +147,14 @@ export class IPv4 {
         }
         return [];
     }
+
+    public deduceRange(r: number) {
+        let lowMask = Math.pow(2,32-r) - 1;
+        let highMask = 0xffffffff - lowMask;
+        let range = new IPv4Range(this.pVal & highMask);
+        range.pIpEnd = new IPv4(this.pVal | lowMask);
+        return range;
+    }
 }
 
 export class IPv4Range {
@@ -154,7 +162,7 @@ export class IPv4Range {
     private ipEnd: IPv4;
     private range: number;
 
-    constructor(value: number = 0, range: number = 1) {
+    constructor(value: number = 0, range: number = 32) {
         this.ipStart = new IPv4(value);
         this.range = range;
     }
@@ -186,7 +194,12 @@ export class IPv4Range {
     }
     set pIpEnd(e: IPv4) {
         let delta = e.pVal - this.ipStart.pVal;
+        this.ipEnd = e;
         this.range = 32-Math.log2(delta+1);
+    }
+
+    get howMany(): number {
+        return Math.pow(2,32-this.range)-1;
     }
 
     static newIPv4RangeFromString(s:string): IPv4Range {

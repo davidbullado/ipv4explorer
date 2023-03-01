@@ -26,6 +26,17 @@ describe("Range",function() {
         expect(result[0].pString).to.equal("1.0.0.0");
         expect(result[1].pString).to.equal("1.0.1.255");
     });
+    it("should deduce an IP Range from an IP", function() {
+        const ip = IPv4.newIPv4FromString("1.1.1.1");
+        let iPv4Range = ip.deduceRange(24);
+        expect(iPv4Range.pRange).to.equal(24);
+        expect(iPv4Range.pIpStart.toString()).to.equal('1.1.1.0');
+        expect(iPv4Range.pIpEnd.toString()).to.equal('1.1.1.255');
+        iPv4Range = ip.deduceRange(8);
+        expect(iPv4Range.pRange).to.equal(8);
+        expect(iPv4Range.pIpStart.toString()).to.equal('1.0.0.0');
+        expect(iPv4Range.pIpEnd.toString()).to.equal('1.255.255.255');
+    });
 });
 
 describe("Range2",function() {
