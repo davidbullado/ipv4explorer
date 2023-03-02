@@ -88,7 +88,7 @@ function onMapClick(e: any):void {
         let latlngf: L.LatLng = getLatLng(mymap, castLPoint(myrange.pIpStart.pPoint), 0.5);
         let latlngt: L.LatLng = getLatLng(mymap, castLPoint(myrange.pIpEnd.pPoint), 0.5);
         // define rectangle geographical bounds
-        let bounds = new LatLngBounds (latlngf, latlngat);
+        let bounds = new LatLngBounds (latlngf, latlngt);
 
         // create an orange rectangle
         selection = L.rectangle(bounds, {color: "#ff7800", weight: 1}).addTo(mymap);
