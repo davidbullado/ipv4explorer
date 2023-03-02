@@ -1,7 +1,7 @@
 html, body {
     margin: 0;
     padding: 0;
-    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    font: 1vw "Lucida Grande", Helvetica, Arial, sans-serif;
     background-color: black;
     overflow:hidden;
 }
@@ -24,8 +24,8 @@ a {
     display: none;
 }
 
-.menu {
-    margin: 7px 14px;
+.info {
+    font-size: 1vw;
 }
 
 .whois {
@@ -55,22 +55,23 @@ a {
 }
 
 #show {
+    padding: 1vw;
     position: absolute;
-    border-radius: 5px;
+    border-radius: 1vw;
     background-color:white;
     z-index: 999;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    box-shadow: 0 1vw 2vw 0 rgba(0, 0, 0, 0.2), 0 1.5vw 4vw 0 rgba(0, 0, 0, 0.19);
     /*transition: 1s;*/
     display: flex;
     flex-direction: column;
-    border : 1px solid black;
+    border : 0.1vw solid black;
 }
 
 #show.mini {
     top: auto;
     left: 50%;
     bottom:3%;
-    width: 380px;
+    width: 33vw;
     max-height: 80%;
     transform: translate(-50%, -50%);
 }
@@ -112,26 +113,27 @@ a {
     }
 }
 
-#show.off{
+.off{
     display:none;
 }
 
 .content{
     flex: 1;
     overflow: auto;
-    margin: 7px 14px;
+    border-radius: 1vw;
 }
 
 .toolbar {
     display:flex;
     justify-content: flex-end;
-    height: 40px;
+    height: 2vw;
+    font-size: 1.1vw;
 }
 
 .toolbar ip {
     flex: 1;
     font-weight: bold;
-    margin: auto 0 auto 14px;
+    margin: auto 0;
 }
 
 .toolbar button {
@@ -141,7 +143,7 @@ a {
     cursor: pointer;
 }
 .toolbar button.close {
-    font-size:20px;
+    font-size:2vw;
 }
 .toolbar button:hover {
     color: #00B7FF;
