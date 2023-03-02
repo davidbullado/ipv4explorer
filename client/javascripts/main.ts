@@ -1,6 +1,7 @@
 import { IPv4 } from "../../ipv4/index";
 import * as L from "leaflet";
 import {control, LatLngBounds} from "leaflet";
+import {IPv4Range} from "../../ipv4/ipv4";
 
 let mymap: L.Map = L.map("mapid").fitWorld();
 let myip: IPv4 = IPv4.newIPv4FromString(document.getElementById("ip").innerText);
@@ -83,22 +84,11 @@ function onMapClick(e: any):void {
 
 
     if (e.target._zoom <= 4) {
-        let ipfrom = myip.toString().split('.');
-        ipfrom[1] = "0";
-        ipfrom[2] = "0";
-        ipfrom[3] = "0";
-        let ipto = myip.toString().split('.');
-        ipto[1] = "255";
-        ipto[2] = "255";
-        ipto[3] = "255";
-        let ipf: IPv4 = IPv4.newIPv4FromString(ipfrom.join('.'));
-        let ipt: IPv4 = IPv4.newIPv4FromString(ipto.join('.'));
-        console.log("from :"+ipf);
-        console.log("to :"+ipto);
-        let latlngf: L.LatLng = getLatLng(mymap, castLPoint(ipf.pPoint), 0.5);
-        let latlngt: L.LatLng = getLatLng(mymap, castLPoint(ipt.pPoint), 0.5);
+        let myrange = myip.deduceRange(8);
+        let latlngf: L.LatLng = getLatLng(mymap, castLPoint(myrange.pIpStart.pPoint), 0.5);
+        let latlngt: L.LatLng = getLatLng(mymap, castLPoint(myrange.pIpEnd.pPoint), 0.5);
         // define rectangle geographical bounds
-        let bounds = new LatLngBounds (latlngf, latlngt);
+        let bounds = new LatLngBounds (latlngf, latlngat);
 
         // create an orange rectangle
         selection = L.rectangle(bounds, {color: "#ff7800", weight: 1}).addTo(mymap);
@@ -106,11 +96,9 @@ function onMapClick(e: any):void {
         //mymap.fitBounds(bounds);
 
         queryJson(`/info/${mypoint.x}/${mypoint.y}/${e.target._zoom}`,(r) => {
-            console.log(r);
-
-            showModal(r.ip);
-
-            updateQueryParamIp(ipf.toString());
+            let ir = IPv4Range.newIPv4RangeFromString(r.ip);
+            showModalRange(ir);
+            updateQueryParamIp(ir.toString());
         });
     } else {
         marker = L.marker(e.latlng).addTo(mymap);
@@ -119,7 +107,7 @@ function onMapClick(e: any):void {
             .setContent(myip.toString())
             .openOn(mymap);*/
 
-        showModal(myip.toString());
+        showModal(myip);
 
         updateQueryParamIp(myip.toString());
     }
@@ -247,9 +235,16 @@ window.onload = function () {
 
 
 
-function showModal (search:string) {
+function showModal (search:IPv4) {
     document.getElementById("show").className = "mini";
-    document.querySelector("#show ip").textContent = search;
+    document.querySelector("#show ip").textContent = search.toString();
+    document.querySelector("#show .range").textContent = '';
+    document.querySelector("#show .whois").textContent = "";
+}
+function showModalRange (search:IPv4Range) {
+    document.getElementById("show").className = "mini";
+    document.querySelector("#show ip").textContent = search.toString();
+    document.querySelector("#show .range").textContent = `${search.pIpStart} to ${search.pIpEnd} (${search.howMany} addresses)`;
     document.querySelector("#show .whois").textContent = "";
 }
 
@@ -273,7 +268,7 @@ export function addMarkerForIP ( searchString:string ) {
             .setLatLng(latlng)
             .setContent(ip.toString())
             .openOn(mymap);*/
-        showModal(ip.toString());
+        showModal(ip);
     } else if ((new RegExp(nsReg)).test(searchString)) {
         let ns = searchString;
         queryNS(ns, function (ipString) {
@@ -287,7 +282,7 @@ export function addMarkerForIP ( searchString:string ) {
                 .setLatLng(latlng)
                 .setContent(ip.toString())
                 .openOn(mymap);*/
-            showModal(ip.toString());
+            showModal(ip);
         });
     } else {
 

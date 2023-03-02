@@ -119,7 +119,7 @@ export function getXYZTileInfo (point){
   // list all Regional Internet Registries where my ip belong
   const resWhois = filterOnIpWhois(ipTile, ipTile.getLastIPMask(point.z * 2));
 
-  let res= {x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP};
+  let res= {x: point.x, y: point.y, z: point.z, desc: null, whois: resWhois[0].whois, date: null, ip: strIP.trim()};
   
   if ( point.z > 5 ) {
       res.desc = getCountries(ipTile.pVal,point.z) ;
